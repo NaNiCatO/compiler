@@ -17,5 +17,3 @@ EQ = ==
 NEQ = !=
 REAL = \d+\.\d+(e[+-]?\d+)?
 INT = \d+
-VAR = [a-zA-Z_][a-zA-Z_0-9]*
-LIST = list

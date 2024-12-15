@@ -17,7 +17,7 @@ class Lexer:
         rules = read_grammar(grammar_file)
 
         # Extract tokens
-        self.tokens = tuple(rules.keys())
+        self.tokens = tuple(rules.keys()) + ('LIST', 'VAR')  # Ensure LIST and VAR are in the token list
 
         # Dynamically assign regex patterns to token handlers
         for token, pattern in rules.items():
@@ -25,6 +25,16 @@ class Lexer:
 
         # Ignore spaces and tabs
         self.t_ignore = ' \t'
+
+    # Define List before Var so that it detects LIST before VAR
+    def t_LIST(self, t):
+        r'list'
+        t.type = 'LIST'
+        return t
+
+    def t_VAR(self, t):
+        r'[a-zA-Z_][a-zA-Z_0-9]*'
+        return t
 
     # Define a rule to track line numbers
     def t_newline(self, t):
