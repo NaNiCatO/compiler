@@ -4,9 +4,6 @@ import ply.lex as lex
 tokens = (
     'INT',        # Integer literals
     'REAL',       # Real numbers in decimal/scientific notation
-    'LIST',       # Keyword for lists    
-    'LBRACKET',   # Left bracket for list indexing
-    'RBRACKET',   # Right bracket for list indexing    
     'VAR',        # Variable names
     'POW',        # Power operator
     'ASSIGN',     # Assignment operator
@@ -23,11 +20,15 @@ tokens = (
     'LTE',        # Less than or equal to
     'EQ',         # Equal to
     'NEQ',        # Not equal to
+    'LBRACKET',   # Left bracket for list indexing
+    'RBRACKET',   # Right bracket for list indexing
+    'LIST',       # Keyword for lists
+    'SIN',        # Sine function
+    'COS',        # Cosine function
+    'TAN',        # Tangent function
 )
 
 # Regular expression rules for simple tokens
-t_LBRACKET = r'\['
-t_RBRACKET = r'\]'
 t_ADD = r'\+'
 t_SUB = r'-'
 t_MUL = r'\*'
@@ -43,7 +44,24 @@ t_LT = r'<'
 t_LTE = r'<='
 t_EQ = r'=='
 t_NEQ = r'!='
+t_LBRACKET = r'\['
+t_RBRACKET = r'\]'
 
+def t_LIST(t):
+    r'list'
+    return t
+
+def t_SIN(t):
+    r'sin'
+    return t
+
+def t_COS(t):
+    r'cos'
+    return t
+
+def t_TAN(t):
+    r'tan'
+    return t
 
 # Regular expressions with actions
 def t_REAL(t):
@@ -58,8 +76,8 @@ def t_INT(t):
 
 def t_VAR(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    if t.value == "list":  # Check if the value is the reserved keyword 'list'
-        t.type = "LIST"    # If so, reassign its token type
+    if t.value in ['list', 'sin', 'cos', 'tan']:
+        t.type = t.value.upper()  # Convert to the corresponding function token type
     return t
 
 # Define a rule to handle whitespace (ignored tokens)
@@ -85,12 +103,19 @@ except Exception as e:
 def main():
     # Example input
     data = """
-    23 + 8
+    23+8
     2.5 * 0
-    x = 5
-    10 * x
-    x != 5
-    list x[2]
+    5NUM^ 3.0
+    x=5
+    10*x
+    x =y
+    x!=5
+    X#+8
+    (2+5)
+    x = list[2]
+    (2.5 ^ 3) - sin(90)
+    tan(45) <= 1
+    cos(0)
     """
 
     try:
