@@ -76,8 +76,6 @@ def t_INT(t):
 
 def t_VAR(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    if t.value in ['list', 'sin', 'cos', 'tan']:
-        t.type = t.value.upper()  # Convert to the corresponding function token type
     return t
 
 # Define a rule to handle whitespace (ignored tokens)
@@ -99,34 +97,46 @@ try:
 except Exception as e:
     print(f"Error building lexer: {e}")
 
-# Test the lexer
-def main():
-    # Example input
-    data = """
-    23+8
-    2.5 * 0
-    5NUM^ 3.0
-    x=5
-    10*x
-    x =y
-    x!=5
-    X#+8
-    (2+5)
-    x = list[2]
+# Write the output to .tok file and lexical grammar to .lex file
+def write_to_files(group_name):
+    input_data = """
+    3 + 5 * 2
     (2.5 ^ 3) - sin(90)
+    list x[2]
+    x != y
     tan(45) <= 1
     cos(0)
     """
 
-    try:
-        # Give the lexer input
-        lexer.input(data)
+    lexer.input(input_data)
 
-        # Tokenize
+    # Tokenized output .tok
+    with open(f"{group_name}.tok", "w") as tok_file:
         for tok in lexer:
-            print(tok)
-    except Exception as e:
-        print(f"Error during tokenization: {e}")
+            tok_file.write(f"{tok.value}/{tok.type} at line {tok.lineno}\n")
+
+    # Lexical grammar .lex
+    with open(f"{group_name}.lex", "w") as lex_file:
+        lex_file.write("# Lexical Grammar Definitions\n")
+        lex_file.write("INT: [0-9]+\n")
+        lex_file.write("REAL: [0-9]+\\.[0-9]+(e[+-]?[0-9]+)?\n")
+        lex_file.write("VAR: [a-zA-Z_][a-zA-Z_0-9]*\n")
+        lex_file.write("LIST: list\n")
+        lex_file.write("SIN: sin\n")
+        lex_file.write("COS: cos\n")
+        lex_file.write("TAN: tan\n")
+        lex_file.write("Operators: +, -, *, /, //, ^, ==, !=, >, >=, <, <=\n")
+
+# Create README
+with open("README.txt", "w") as readme_file:
+    readme_file.write("# Instructions for Lexical Analyzer\n")
+    readme_file.write("\n## How to Compile and Run\n")
+    readme_file.write("1. Run the Python script to build the lexer and generate .tok and .lex files.\n")
+    readme_file.write("2. Example command: python lexical_analyzer.py\n")
+    readme_file.write("3. Check `Codezilla.tok` for tokenized output and `Codezilla.lex` for lexical grammar.\n")
+
+def main():
+    write_to_files("Codezilla")
 
 if __name__ == "__main__":
     main()
