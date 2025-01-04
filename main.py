@@ -122,7 +122,7 @@ def process_input_output(input_file, output_file):
 # Example usage
 def main():
     input_file = "input.txt"  # The file containing input expressions
-    output_file = "output.tok"  # The file where tokenized output is saved
+    output_file = "Codezilla.tok"  # The file where tokenized output is saved
     process_input_output(input_file, output_file)
 
 if __name__ == "__main__":
