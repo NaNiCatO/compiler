@@ -1,6 +1,5 @@
-# Instructions for Lexical Analyzer
+# Step to run/compile
 
-## How to Compile and Run
-1. Run the Python script to build the lexer and generate .tok and .lex files.
-2. Example command: python lexical_analyzer.py
-3. Check `Codezilla.tok` for tokenized output and `Codezilla.lex` for lexical grammar.
+- <b>Step 1 :</b> Create/Edit a text file named Input.txt with the input that you want
+- <b>Step 2 :</b> Run goto main.py and run the script (ply library required)
+- <b>Step 3 :</b> Head over to Codezilla.tok to get the output
