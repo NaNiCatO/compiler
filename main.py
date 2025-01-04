@@ -66,7 +66,7 @@ def t_TAN(t):
 
 # Regular expressions with actions
 def t_REAL(t):
-    r'\d+\.\d+(e[+-]?\d+)?'
+    r'(\d+\.\d*|\.\d+)(e[+-]?\d+)?'
     t.value = float(t.value)  # Convert to a float for real numbers
     return t
 
