@@ -100,10 +100,17 @@ except Exception as e:
 # Write the output to .tok file and lexical grammar to .lex file
 def write_to_files(group_name):
     input_data = """
-    3 + 5 * 2
+    23+8
+    2.5 * 0
+    5NUM^ 3.0
+    x=5
+    10*x
+    x =y
+    x!=5
+    X#+8
+    (2+5)
+    x = list[2]
     (2.5 ^ 3) - sin(90)
-    list x[2]
-    x != y
     tan(45) <= 1
     cos(0)
     """
