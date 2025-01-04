@@ -25,7 +25,8 @@ tokens = (
     'LIST',       # Keyword for lists
     'SIN',        # Sine function
     'COS',        # Cosine function
-    'TAN',        # Tangent function
+    'TAN',        # Tangent function,
+    'ERR'         # Error token for invalid characters
 )
 
 # Regular expression rules for simple tokens
@@ -76,6 +77,12 @@ def t_INT(t):
 
 def t_VAR(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
+    if t.value in ['list', 'sin', 'cos', 'tan']:
+        t.type = t.value.upper()  # Convert to the corresponding function token type
+    return t
+
+def t_ERR(t):
+    r'[^\s\w\d+\-*/^=<>!()[\]\\.]'
     return t
 
 # Define a rule to handle whitespace (ignored tokens)
@@ -88,8 +95,8 @@ def t_newline(t):
 
 # Define a rule for handling errors
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}")
-    t.lexer.skip(1)
+    t.type = 'ERR'
+    return t
 
 # Build the lexer
 try:
@@ -97,53 +104,26 @@ try:
 except Exception as e:
     print(f"Error building lexer: {e}")
 
-# Write the output to .tok file and lexical grammar to .lex file
-def write_to_files(group_name):
-    input_data = """
-    23+8
-    2.5 * 0
-    5NUM^ 3.0
-    x=5
-    10*x
-    x =y
-    x!=5
-    X#+8
-    (2+5)
-    x = list[2]
-    (2.5 ^ 3) - sin(90)
-    tan(45) <= 1
-    cos(0)
-    """
+# Function to read from input.txt and output formatted results to output.tok
+def process_input_output(input_file, output_file):
+    with open(input_file, 'r') as infile:
+        data = infile.read()
 
-    lexer.input(input_data)
+    lexer.input(data)
 
-    # Tokenized output .tok
-    with open(f"{group_name}.tok", "w") as tok_file:
-        for tok in lexer:
-            tok_file.write(f"{tok.value}/{tok.type} at line {tok.lineno}\n")
+    with open(output_file, 'w') as outfile:
+        for line in data.splitlines():
+            lexer.input(line)
+            tokens = []
+            for tok in lexer:
+                tokens.append(f"{tok.value}/{tok.type}")
+            outfile.write(' '.join(tokens) + '\n')
 
-    # Lexical grammar .lex
-    with open(f"{group_name}.lex", "w") as lex_file:
-        lex_file.write("# Lexical Grammar Definitions\n")
-        lex_file.write("INT: [0-9]+\n")
-        lex_file.write("REAL: [0-9]+\\.[0-9]+(e[+-]?[0-9]+)?\n")
-        lex_file.write("VAR: [a-zA-Z_][a-zA-Z_0-9]*\n")
-        lex_file.write("LIST: list\n")
-        lex_file.write("SIN: sin\n")
-        lex_file.write("COS: cos\n")
-        lex_file.write("TAN: tan\n")
-        lex_file.write("Operators: +, -, *, /, //, ^, ==, !=, >, >=, <, <=\n")
-
-# Create README
-with open("README.txt", "w") as readme_file:
-    readme_file.write("# Instructions for Lexical Analyzer\n")
-    readme_file.write("\n## How to Compile and Run\n")
-    readme_file.write("1. Run the Python script to build the lexer and generate .tok and .lex files.\n")
-    readme_file.write("2. Example command: python lexical_analyzer.py\n")
-    readme_file.write("3. Check `Codezilla.tok` for tokenized output and `Codezilla.lex` for lexical grammar.\n")
-
+# Example usage
 def main():
-    write_to_files("Codezilla")
+    input_file = "input.txt"  # The file containing input expressions
+    output_file = "output.tok"  # The file where tokenized output is saved
+    process_input_output(input_file, output_file)
 
 if __name__ == "__main__":
     main()
