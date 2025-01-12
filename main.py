@@ -2,8 +2,8 @@ import ply.lex as lex
 
 # List of token names
 tokens = (
-    'INT',        # Integer literals
-    'REAL',       # Real numbers in decimal/scientific notation
+    'INT',        # Integer literals (including negatives)
+    'REAL',       # Real numbers in decimal/scientific notation (including negatives)
     'VAR',        # Variable names
     'POW',        # Power operator
     'ASSIGN',     # Assignment operator
@@ -66,13 +66,13 @@ def t_TAN(t):
 
 # Regular expressions with actions
 def t_REAL(t):
-    r'(\d+\.\d*|\.\d+)(e[+-]?\d+)?'
-    t.value = float(t.value)  # Convert to a float for real numbers
+    r'-?(\d+\.\d*|\.\d+)(e[+-]?\d+)?'
+    t.value = float(t.value)  # Convert to a float for real numbers (including negative values)
     return t
 
 def t_INT(t):
-    r'\d+'
-    t.value = int(t.value)  # Convert to an integer
+    r'-?\d+'
+    t.value = int(t.value)  # Convert to an integer (including negative values)
     return t
 
 def t_VAR(t):
@@ -82,7 +82,7 @@ def t_VAR(t):
     return t
 
 def t_ERR(t):
-    r'[^\s\w\d+\-*/^=<>!()[\]\\.]'
+    r'[^\s\w\d+\-*/^=<>!()[\]\.]'
     return t
 
 # Define a rule to handle whitespace (ignored tokens)
