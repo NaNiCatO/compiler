@@ -1,4 +1,5 @@
 import ply.lex as lex
+import ply.yacc as yacc
 
 # List of token names
 tokens = (
@@ -95,8 +96,8 @@ def t_newline(t):
 
 # Define a rule for handling errors
 def t_error(t):
-    t.type = 'ERR'
-    return t
+    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}")
+    t.lexer.skip(1)
 
 # Build the lexer
 try:
@@ -105,7 +106,7 @@ except Exception as e:
     print(f"Error building lexer: {e}")
 
 # Function to read from input.txt and output formatted results to output.tok
-def process_input_output(input_file, output_file):
+def process_lexical(input_file, output_file):
     with open(input_file, 'r') as infile:
         data = infile.read()
 
@@ -119,11 +120,125 @@ def process_input_output(input_file, output_file):
                 tokens.append(f"{tok.value}/{tok.type}")
             outfile.write(' '.join(tokens) + '\n')
 
+
+
+# Symbol Table to track semantic information
+symbol_table = {}
+
+# Function to add entries to the symbol table
+def add_to_symbol_table(lexeme, line_number, start_pos, length, symbol_type, value=None):
+    symbol_table[lexeme] = {
+        "lexeme": lexeme,
+        "line_number": line_number,
+        "start_pos": start_pos,
+        "length": length,
+        "type": symbol_type,
+        "value": value
+    }
+
+# Syntactic and semantic analysis
+# Grammar rules
+def p_assignment(p):
+    'expression : VAR ASSIGN expression'
+    lexeme = p[1]
+    line_number = p.lineno(1)
+    start_pos = p.lexpos(1)
+    length = len(lexeme)
+
+    # Check if variable is already declared, if not, add it
+    if lexeme not in symbol_table:
+        add_to_symbol_table(lexeme, line_number, start_pos, length, "variable", p[3])
+    else:
+        symbol_table[lexeme]["value"] = p[3]  # Update the value
+
+    p[0] = f"ASSIGN: {lexeme} := {p[3]}"
+
+def p_expression_arithmetic(p):
+    '''expression : expression ADD expression
+                  | expression SUB expression
+                  | expression MUL expression
+                  | expression DIV expression
+                  | expression POW expression'''
+    if p[2] == '+':
+        p[0] = p[1] + p[3]
+    elif p[2] == '-':
+        p[0] = p[1] - p[3]
+    elif p[2] == '*':
+        p[0] = p[1] * p[3]
+    elif p[2] == '/':
+        if p[3] == 0:
+            print("Semantic Error: Division by zero.")
+            p[0] = None
+        else:
+            p[0] = p[1] / p[3]
+    elif p[2] == '^':
+        p[0] = p[1] ** p[3]
+
+def p_expression_group(p):
+    'expression : LPAREN expression RPAREN'
+    p[0] = p[2]
+
+def p_expression_number(p):
+    '''expression : INT
+                  | REAL'''
+    p[0] = p[1]
+
+def p_expression_var(p):
+    'expression : VAR'
+    lexeme = p[1]
+    if lexeme not in symbol_table:
+        print(f"Semantic Error: Variable '{lexeme}' not declared at line {p.lineno(1)}.")
+    else:
+        print(f"Using variable '{lexeme}' with value {symbol_table[lexeme]['value']} at line {p.lineno(1)}.")
+    p[0] = symbol_table.get(lexeme, {}).get("value", None)
+
+def p_expression_list_access(p):
+    'expression : LIST LBRACKET INT RBRACKET'
+    if p[3] < 0:
+        print("Semantic Error: List index cannot be negative.")
+    p[0] = f"LIST ACCESS INDEX {p[3]}"
+
+def p_error(p):
+    if p:
+        print(f"Syntax error at '{p.value}'")
+    else:
+        print("Syntax error at EOF")
+
+# Build the parser
+parser = yacc.yacc()
+
+def process_syntax(input_file, output_file):
+    with open(input_file, 'r') as infile:
+        data = infile.read()
+
+    results = []
+    for line in data.splitlines():
+        result = parser.parse(line)
+        if result is not None:
+            results.append(f"{line.strip()} -> {result}")
+        else:
+            results.append(f"{line.strip()} -> Syntax Error")
+
+    with open(output_file, 'w') as outfile:
+        for result in results:
+            outfile.write(result + '\n')
+
 # Example usage
 def main():
     input_file = "input.txt"  # The file containing input expressions
-    output_file = "Codezilla.tok"  # The file where tokenized output is saved
-    process_input_output(input_file, output_file)
+    output_file_tok = "lex/lexical_output.tok"  # The file where tokenized output is saved
+    output_file_bracket = "parser/parser_output.bracket"  # The file where parsed output is saved
+
+    # Lexical analysis
+    process_lexical(input_file, output_file_tok)
+
+    # Syntactic analysis
+    process_syntax(input_file, output_file_bracket)
+
+    # Print symbol table
+    print("Symbol Table:")
+    for key, value in symbol_table.items():
+        print(f"{key}: {value}")
 
 if __name__ == "__main__":
     main()
