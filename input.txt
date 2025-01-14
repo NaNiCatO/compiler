@@ -1,10 +1,23 @@
-23+8
+23 + 8
 2.5 * 0
-5NUM^ 3.0
-x=5
-10*x
-x=y
-x!=5
-(2+5)
+5NUM ^ 3.0
+x = 5
+10 * x
+x = y
+x != 5
+(2 + 5)
 x = list[2]
 x[0] + x[1]
+sin(30)
+cos(45)
+tan(60)
+x = sin(30)
+y = cos(45)
+z = tan(60)
+result = x + y - z
+w = list[3]
+w[0] = sin(90)
+w[1] = cos(0)
+w[2] = tan(45)
+w[0] + w[1] + w[2]
+g = sigma(20)

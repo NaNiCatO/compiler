@@ -57,6 +57,8 @@ def t_INT(t):
 
 def t_VAR(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
+    if t.value in ['list', 'sin', 'cos', 'tan']:
+        t.type = t.value.upper()  # Convert to the corresponding function token type
     return t
 
 def t_ERR(t):
@@ -81,14 +83,23 @@ symbol_table = {}
 
 def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, value=None):
     """Add or update an entry in the symbol table."""
-    symbol_table[lexeme] = {
-        "lexeme": lexeme,
-        "line_number": line_number,
-        "start_pos": start_pos,
-        "length": length,
-        "type": token_type,
-        "value": value
-    }
+    if lexeme not in symbol_table:
+        symbol_table[lexeme] = {
+            "lexeme": lexeme,
+            "line_number": line_number,
+            "start_pos": start_pos,
+            "length": length,
+            "type": token_type,
+            "value": value
+        }
+    else:
+        symbol_table[lexeme].update({
+            "line_number": line_number,
+            "start_pos": start_pos,
+            "length": length,
+            "type": token_type,
+            "value": value
+        })
 
 # Grammar rules
 def p_assignment(p):
@@ -163,15 +174,28 @@ def p_error(p):
 # Build the parser
 parser = yacc.yacc()
 
-def parse_input(input_file, bracket_output, csv_output):
-    """Parse input, generate bracketed output and symbol table."""
+# Function to process lexical analysis
+def process_lexical(input_file, output_file):
+    with open(input_file, 'r') as infile:
+        data = infile.read()
+
+    lexer.input(data)
+
+    with open(output_file, 'w') as outfile:
+        for line in data.splitlines():
+            lexer.input(line)
+            tokens = []
+            for tok in lexer:
+                tokens.append(f"{tok.value}/{tok.type}")
+            outfile.write(' '.join(tokens) + '\n')
+
+# Function to process syntactic analysis
+def process_syntax(input_file, bracket_output):
     with open(input_file, 'r') as infile, open(bracket_output, 'w') as bracket_file:
         for lineno, line in enumerate(infile, start=1):
             try:
                 result = parser.parse(line)
-                if result and "Undefined variable" not in result:
-                    bracket_file.write(f"{result}\n")
-                elif "Undefined variable" in result:
+                if result:
                     bracket_file.write(f"{result}\n")
                 else:
                     bracket_file.write(f"SyntaxError at line {lineno}\n")
@@ -180,7 +204,9 @@ def parse_input(input_file, bracket_output, csv_output):
             except Exception as e:
                 bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
 
-    with open(csv_output, 'w', newline='') as csvfile:
+# Function to output the symbol table
+def write_symbol_table(output_file):
+    with open(output_file, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["lexeme", "line_number", "start_pos", "length", "type", "value"])
         for entry in symbol_table.values():
@@ -188,10 +214,24 @@ def parse_input(input_file, bracket_output, csv_output):
                              entry["length"], entry["type"], entry["value"]])
 
 def main():
-    input_file = "input.txt"
-    bracket_output = "parser/parser_output.bracket"
-    csv_output = "parser/symbol_table.csv"
-    parse_input(input_file, bracket_output, csv_output)
+    input_file = "input.txt"  # Input expressions
+    output_file_tok = "lex/lexical_output.tok"  # Tokenized output
+    output_file_bracket = "parser/parser_output.bracket"  # Parsed output
+    symbol_table_file = "parser/symbol_table.csv"  # Symbol table output
+
+    # Lexical analysis
+    process_lexical(input_file, output_file_tok)
+
+    # Syntactic analysis
+    process_syntax(input_file, output_file_bracket)
+
+    # Write the symbol table to CSV
+    write_symbol_table(symbol_table_file)
+
+    # Print symbol table to console
+    print("Symbol Table:")
+    for key, value in symbol_table.items():
+        print(f"{key}: {value}")
 
 if __name__ == "__main__":
     main()

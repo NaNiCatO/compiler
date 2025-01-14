@@ -3,8 +3,21 @@
 SyntaxError at line 3, pos 1
 (x=5)
 (10*x)
-Undefined variable 'y' at line 5, pos 2
-SyntaxError at line 6, pos 1
+Undefined variable 'y' at line 5, pos 4
+SyntaxError at line 6, pos 2
 ((2+5))
 (x=(list[(2)]))
 (((x[(0)]))+((x[(1)])))
+(sin(30))
+(cos(45))
+(tan(60))
+(x=(sin(30)))
+(y=(cos(45)))
+(z=(tan(60)))
+(result=(x+(y-z)))
+(w=(list[(3)]))
+SyntaxError at line 17, pos 5
+SyntaxError at line 17, pos 5
+SyntaxError at line 17, pos 5
+(((w[(0)]))+(((w[(1)]))+((w[(2)]))))
+SyntaxError at line 18, pos 9
