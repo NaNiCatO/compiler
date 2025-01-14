@@ -6,7 +6,7 @@ import csv
 tokens = (
     'INT', 'REAL', 'VAR', 'POW', 'ASSIGN', 'ADD', 'SUB', 'MUL',
     'DIV', 'INTDIV', 'LPAREN', 'RPAREN', 'GT', 'GTE', 'LT', 'LTE',
-    'EQ', 'NEQ', 'LBRACKET', 'RBRACKET', 'LIST', 'ERR'
+    'EQ', 'NEQ', 'LBRACKET', 'RBRACKET', 'LIST', 'SIN', 'COS', 'TAN', 'ERR'
 )
 
 # Regular expression rules for tokens
@@ -27,6 +27,19 @@ t_EQ = r'=='
 t_NEQ = r'!='
 t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
+
+# Token rules for functions
+def t_SIN(t):
+    r'sin'
+    return t
+
+def t_COS(t):
+    r'cos'
+    return t
+
+def t_TAN(t):
+    r'tan'
+    return t
 
 def t_LIST(t):
     r'list'
@@ -58,8 +71,7 @@ def t_newline(t):
 
 def t_error(t):
     print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}.")
-    t.lexer.skip(len(t.value))  # Skip the entire invalid token.
-
+    t.lexer.skip(len(t.value))
 
 # Build the lexer
 lexer = lex.lex()
@@ -85,14 +97,10 @@ def p_assignment(p):
     line_number = p.lineno(1)
     start_pos = p.lexpos(1)
 
-    # Handle assignment with undefined variables
     if isinstance(p[3], str) and "Undefined variable" in p[3]:
-        p[0] = p[3]  # Propagate the error
+        p[0] = p[3]
     else:
-        if lexeme not in symbol_table:
-            add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
-        else:
-            symbol_table[lexeme]["value"] = p[3]
+        add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
         p[0] = f"({lexeme}={p[3]})"
 
 def p_expression_arithmetic(p):
@@ -101,19 +109,7 @@ def p_expression_arithmetic(p):
                   | expression MUL expression
                   | expression DIV expression
                   | expression POW expression'''
-    if p[2] == '+':
-        p[0] = f"({p[1]}+{p[3]})"
-    elif p[2] == '-':
-        p[0] = f"({p[1]}-{p[3]})"
-    elif p[2] == '*':
-        p[0] = f"({p[1]}*{p[3]})"
-    elif p[2] == '/':
-        if p[3] == 0:
-            p[0] = f"Semantic Error: Division by zero at line {p.lineno(2)}, pos {p.lexpos(2)}"
-        else:
-            p[0] = f"({p[1]}/{p[3]})"
-    elif p[2] == '^':
-        p[0] = f"({p[1]}^{p[3]})"
+    p[0] = f"({p[1]}{p[2]}{p[3]})"
 
 def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
@@ -133,7 +129,7 @@ def p_expression_var(p):
         p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
     else:
         p[0] = lexeme
-        
+
 def p_expression_list_declaration(p):
     'expression : VAR ASSIGN LIST LBRACKET INT RBRACKET'
     if p[5] <= 0:
@@ -148,12 +144,17 @@ def p_expression_list_access(p):
     if not isinstance(list_value, list):
         p[0] = f"Semantic Error: '{p[1]}' is not a list."
     elif p[3] < 0 or p[3] >= len(list_value):
-        p[0] = f"Semantic Error: Index out of range for list '{p[1]}'."
+        p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
     else:
         p[0] = f"(({p[1]}[({p[3]})]))"
 
+def p_expression_function(p):
+    '''expression : SIN LPAREN expression RPAREN
+                  | COS LPAREN expression RPAREN
+                  | TAN LPAREN expression RPAREN'''
+    p[0] = f"({p[1]}({p[3]}))"
+
 def p_error(p):
-    """Handle syntax errors."""
     if p:
         raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
     else:
@@ -179,13 +180,13 @@ def parse_input(input_file, bracket_output, csv_output):
             except Exception as e:
                 bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
 
-    # Write symbol table to a CSV file
     with open(csv_output, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["lexeme", "line_number", "start_pos", "length", "type", "value"])
         for entry in symbol_table.values():
             writer.writerow([entry["lexeme"], entry["line_number"], entry["start_pos"],
                              entry["length"], entry["type"], entry["value"]])
+
 def main():
     input_file = "input.txt"
     bracket_output = "parser/parser_output.bracket"
