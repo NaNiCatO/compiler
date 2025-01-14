@@ -1,36 +1,15 @@
 import ply.lex as lex
 import ply.yacc as yacc
+import csv
 
 # List of token names
 tokens = (
-    'INT',        # Integer literals (including negatives)
-    'REAL',       # Real numbers in decimal/scientific notation (including negatives)
-    'VAR',        # Variable names
-    'POW',        # Power operator
-    'ASSIGN',     # Assignment operator
-    'ADD',        # Addition operator
-    'SUB',        # Subtraction operator
-    'MUL',        # Multiplication operator
-    'DIV',        # Floating-point division operator
-    'INTDIV',     # Integer division operator
-    'LPAREN',     # Left parenthesis
-    'RPAREN',     # Right parenthesis
-    'GT',         # Greater than
-    'GTE',        # Greater than or equal to
-    'LT',         # Less than
-    'LTE',        # Less than or equal to
-    'EQ',         # Equal to
-    'NEQ',        # Not equal to
-    'LBRACKET',   # Left bracket for list indexing
-    'RBRACKET',   # Right bracket for list indexing
-    'LIST',       # Keyword for lists
-    'SIN',        # Sine function
-    'COS',        # Cosine function
-    'TAN',        # Tangent function,
-    'ERR'         # Error token for invalid characters
+    'INT', 'REAL', 'VAR', 'POW', 'ASSIGN', 'ADD', 'SUB', 'MUL',
+    'DIV', 'INTDIV', 'LPAREN', 'RPAREN', 'GT', 'GTE', 'LT', 'LTE',
+    'EQ', 'NEQ', 'LBRACKET', 'RBRACKET', 'LIST', 'ERR'
 )
 
-# Regular expression rules for simple tokens
+# Regular expression rules for tokens
 t_ADD = r'\+'
 t_SUB = r'-'
 t_MUL = r'\*'
@@ -53,105 +32,67 @@ def t_LIST(t):
     r'list'
     return t
 
-def t_SIN(t):
-    r'sin'
-    return t
-
-def t_COS(t):
-    r'cos'
-    return t
-
-def t_TAN(t):
-    r'tan'
-    return t
-
-# Regular expressions with actions
 def t_REAL(t):
     r'-?(\d+\.\d*|\.\d+)(e[+-]?\d+)?'
-    t.value = float(t.value)  # Convert to a float for real numbers (including negative values)
+    t.value = float(t.value)
     return t
 
 def t_INT(t):
     r'-?\d+'
-    t.value = int(t.value)  # Convert to an integer (including negative values)
+    t.value = int(t.value)
     return t
 
 def t_VAR(t):
     r'[a-zA-Z_][a-zA-Z_0-9]*'
-    if t.value in ['list', 'sin', 'cos', 'tan']:
-        t.type = t.value.upper()  # Convert to the corresponding function token type
     return t
 
 def t_ERR(t):
     r'[^\s\w\d+\-*/^=<>!()[\]\.]'
     return t
 
-# Define a rule to handle whitespace (ignored tokens)
 t_ignore = ' \t'
 
-# Define a rule to track line numbers
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
-# Define a rule for handling errors
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}")
+    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}.")
     t.lexer.skip(1)
 
 # Build the lexer
-try:
-    lexer = lex.lex()
-except Exception as e:
-    print(f"Error building lexer: {e}")
+lexer = lex.lex()
 
-# Function to read from input.txt and output formatted results to output.tok
-def process_lexical(input_file, output_file):
-    with open(input_file, 'r') as infile:
-        data = infile.read()
-
-    lexer.input(data)
-
-    with open(output_file, 'w') as outfile:
-        for line in data.splitlines():
-            lexer.input(line)
-            tokens = []
-            for tok in lexer:
-                tokens.append(f"{tok.value}/{tok.type}")
-            outfile.write(' '.join(tokens) + '\n')
-
-
-
-# Symbol Table to track semantic information
+# Symbol Table
 symbol_table = {}
 
-# Function to add entries to the symbol table
-def add_to_symbol_table(lexeme, line_number, start_pos, length, symbol_type, value=None):
+def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, value=None):
+    """Add or update an entry in the symbol table."""
     symbol_table[lexeme] = {
         "lexeme": lexeme,
         "line_number": line_number,
         "start_pos": start_pos,
         "length": length,
-        "type": symbol_type,
+        "type": token_type,
         "value": value
     }
 
-# Syntactic and semantic analysis
 # Grammar rules
 def p_assignment(p):
     'expression : VAR ASSIGN expression'
     lexeme = p[1]
     line_number = p.lineno(1)
     start_pos = p.lexpos(1)
-    length = len(lexeme)
 
-    # Check if variable is already declared, if not, add it
-    if lexeme not in symbol_table:
-        add_to_symbol_table(lexeme, line_number, start_pos, length, "variable", p[3])
+    # Handle assignment with undefined variables
+    if isinstance(p[3], str) and "Undefined variable" in p[3]:
+        p[0] = p[3]  # Propagate the error
     else:
-        symbol_table[lexeme]["value"] = p[3]  # Update the value
-
-    p[0] = f"ASSIGN: {lexeme} := {p[3]}"
+        if lexeme not in symbol_table:
+            add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
+        else:
+            symbol_table[lexeme]["value"] = p[3]
+        p[0] = f"({lexeme}={p[3]})"
 
 def p_expression_arithmetic(p):
     '''expression : expression ADD expression
@@ -160,85 +101,92 @@ def p_expression_arithmetic(p):
                   | expression DIV expression
                   | expression POW expression'''
     if p[2] == '+':
-        p[0] = p[1] + p[3]
+        p[0] = f"({p[1]}+{p[3]})"
     elif p[2] == '-':
-        p[0] = p[1] - p[3]
+        p[0] = f"({p[1]}-{p[3]})"
     elif p[2] == '*':
-        p[0] = p[1] * p[3]
+        p[0] = f"({p[1]}*{p[3]})"
     elif p[2] == '/':
         if p[3] == 0:
-            print("Semantic Error: Division by zero.")
-            p[0] = None
+            p[0] = f"Semantic Error: Division by zero at line {p.lineno(2)}, pos {p.lexpos(2)}"
         else:
-            p[0] = p[1] / p[3]
+            p[0] = f"({p[1]}/{p[3]})"
     elif p[2] == '^':
-        p[0] = p[1] ** p[3]
+        p[0] = f"({p[1]}^{p[3]})"
 
 def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
-    p[0] = p[2]
+    p[0] = f"({p[2]})"
 
 def p_expression_number(p):
     '''expression : INT
                   | REAL'''
-    p[0] = p[1]
+    p[0] = str(p[1])
 
 def p_expression_var(p):
     'expression : VAR'
     lexeme = p[1]
     if lexeme not in symbol_table:
-        print(f"Semantic Error: Variable '{lexeme}' not declared at line {p.lineno(1)}.")
+        line_number = p.lineno(1)
+        start_pos = p.lexpos(1)
+        p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
     else:
-        print(f"Using variable '{lexeme}' with value {symbol_table[lexeme]['value']} at line {p.lineno(1)}.")
-    p[0] = symbol_table.get(lexeme, {}).get("value", None)
+        p[0] = lexeme
+        
+def p_expression_list_declaration(p):
+    'expression : VAR ASSIGN LIST LBRACKET INT RBRACKET'
+    if p[5] <= 0:
+        p[0] = "Semantic Error: List size must be positive."
+    else:
+        add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", [0] * p[5])
+        p[0] = f"({p[1]}=(list[({p[5]})]))"
 
 def p_expression_list_access(p):
-    'expression : LIST LBRACKET INT RBRACKET'
-    if p[3] < 0:
-        print("Semantic Error: List index cannot be negative.")
-    p[0] = f"LIST ACCESS INDEX {p[3]}"
+    'expression : VAR LBRACKET INT RBRACKET'
+    list_value = symbol_table.get(p[1], {}).get("value", [])
+    if not isinstance(list_value, list):
+        p[0] = f"Semantic Error: '{p[1]}' is not a list."
+    elif p[3] < 0 or p[3] >= len(list_value):
+        p[0] = f"Semantic Error: Index out of range for list '{p[1]}'."
+    else:
+        p[0] = f"(({p[1]}[({p[3]})]))"
 
 def p_error(p):
     if p:
-        print(f"Syntax error at '{p.value}'")
+        print(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
     else:
-        print("Syntax error at EOF")
+        print("SyntaxError at EOF")
 
 # Build the parser
 parser = yacc.yacc()
 
-def process_syntax(input_file, output_file):
-    with open(input_file, 'r') as infile:
-        data = infile.read()
+def parse_input(input_file, bracket_output, csv_output):
+    """Parse input, generate bracketed output and symbol table."""
+    with open(input_file, 'r') as infile, open(bracket_output, 'w') as bracket_file:
+        for lineno, line in enumerate(infile, start=1):
+            try:
+                result = parser.parse(line)
+                if result and "Undefined variable" not in result:
+                    bracket_file.write(f"{result}\n")
+                elif "Undefined variable" in result:
+                    bracket_file.write(f"{result}\n")
+                else:
+                    bracket_file.write(f"SyntaxError at line {lineno}\n")
+            except Exception as e:
+                bracket_file.write(f"SyntaxError at line {lineno}: {e}\n")
 
-    results = []
-    for line in data.splitlines():
-        result = parser.parse(line)
-        if result is not None:
-            results.append(f"{line.strip()} -> {result}")
-        else:
-            results.append(f"{line.strip()} -> Syntax Error")
-
-    with open(output_file, 'w') as outfile:
-        for result in results:
-            outfile.write(result + '\n')
-
-# Example usage
+    # Write symbol table to a CSV file
+    with open(csv_output, 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["lexeme", "line_number", "start_pos", "length", "type", "value"])
+        for entry in symbol_table.values():
+            writer.writerow([entry["lexeme"], entry["line_number"], entry["start_pos"],
+                             entry["length"], entry["type"], entry["value"]])
 def main():
-    input_file = "input.txt"  # The file containing input expressions
-    output_file_tok = "lex/lexical_output.tok"  # The file where tokenized output is saved
-    output_file_bracket = "parser/parser_output.bracket"  # The file where parsed output is saved
-
-    # Lexical analysis
-    process_lexical(input_file, output_file_tok)
-
-    # Syntactic analysis
-    process_syntax(input_file, output_file_bracket)
-
-    # Print symbol table
-    print("Symbol Table:")
-    for key, value in symbol_table.items():
-        print(f"{key}: {value}")
+    input_file = "input.txt"
+    bracket_output = "parser/parser_output.bracket"
+    csv_output = "parser/symbol_table.csv"
+    parse_input(input_file, bracket_output, csv_output)
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,6 @@ Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
-    COS
     EQ
     ERR
     GT
@@ -11,8 +10,6 @@ Unused terminals:
     LT
     LTE
     NEQ
-    SIN
-    TAN
 
 Grammar
 
@@ -27,21 +24,21 @@ Rule 7     expression -> LPAREN expression RPAREN
 Rule 8     expression -> INT
 Rule 9     expression -> REAL
 Rule 10    expression -> VAR
-Rule 11    expression -> LIST LBRACKET INT RBRACKET
+Rule 11    expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET
+Rule 12    expression -> VAR LBRACKET INT RBRACKET
 
 Terminals, with rules where they appear
 
 ADD                  : 2
-ASSIGN               : 1
-COS                  : 
+ASSIGN               : 1 11
 DIV                  : 5
 EQ                   : 
 ERR                  : 
 GT                   : 
 GTE                  : 
-INT                  : 8 11
+INT                  : 8 11 12
 INTDIV               : 
-LBRACKET             : 11
+LBRACKET             : 11 12
 LIST                 : 11
 LPAREN               : 7
 LT                   : 
@@ -49,13 +46,11 @@ LTE                  :
 MUL                  : 4
 NEQ                  : 
 POW                  : 6
-RBRACKET             : 11
+RBRACKET             : 11 12
 REAL                 : 9
 RPAREN               : 7
-SIN                  : 
 SUB                  : 3
-TAN                  : 
-VAR                  : 1 10
+VAR                  : 1 10 11 12
 error                : 
 
 Nonterminals, with rules where they appear
@@ -77,13 +72,13 @@ state 0
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
     expression                     shift and go to state 1
 
@@ -96,19 +91,21 @@ state 1
     (5) expression -> expression . DIV expression
     (6) expression -> expression . POW expression
 
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
 
 state 2
 
     (1) expression -> VAR . ASSIGN expression
     (10) expression -> VAR .
+    (11) expression -> VAR . ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> VAR . LBRACKET INT RBRACKET
 
-    ASSIGN          shift and go to state 12
+    ASSIGN          shift and go to state 11
     ADD             reduce using rule 10 (expression -> VAR .)
     SUB             reduce using rule 10 (expression -> VAR .)
     MUL             reduce using rule 10 (expression -> VAR .)
@@ -116,6 +113,7 @@ state 2
     POW             reduce using rule 10 (expression -> VAR .)
     $end            reduce using rule 10 (expression -> VAR .)
     RPAREN          reduce using rule 10 (expression -> VAR .)
+    LBRACKET        shift and go to state 12
 
 
 state 3
@@ -131,13 +129,13 @@ state 3
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
     expression                     shift and go to state 13
 
@@ -169,13 +167,6 @@ state 5
 
 state 6
 
-    (11) expression -> LIST . LBRACKET INT RBRACKET
-
-    LBRACKET        shift and go to state 14
-
-
-state 7
-
     (2) expression -> expression ADD . expression
     (1) expression -> . VAR ASSIGN expression
     (2) expression -> . expression ADD expression
@@ -187,17 +178,17 @@ state 7
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
-    expression                     shift and go to state 15
+    expression                     shift and go to state 14
 
-state 8
+state 7
 
     (3) expression -> expression SUB . expression
     (1) expression -> . VAR ASSIGN expression
@@ -210,17 +201,17 @@ state 8
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
-    expression                     shift and go to state 16
+    expression                     shift and go to state 15
 
-state 9
+state 8
 
     (4) expression -> expression MUL . expression
     (1) expression -> . VAR ASSIGN expression
@@ -233,17 +224,17 @@ state 9
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
-    expression                     shift and go to state 17
+    expression                     shift and go to state 16
 
-state 10
+state 9
 
     (5) expression -> expression DIV . expression
     (1) expression -> . VAR ASSIGN expression
@@ -256,17 +247,17 @@ state 10
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
-    expression                     shift and go to state 18
+    expression                     shift and go to state 17
 
-state 11
+state 10
 
     (6) expression -> expression POW . expression
     (1) expression -> . VAR ASSIGN expression
@@ -279,19 +270,20 @@ state 11
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
-    expression                     shift and go to state 19
+    expression                     shift and go to state 18
 
-state 12
+state 11
 
     (1) expression -> VAR ASSIGN . expression
+    (11) expression -> VAR ASSIGN . LIST LBRACKET INT RBRACKET
     (1) expression -> . VAR ASSIGN expression
     (2) expression -> . expression ADD expression
     (3) expression -> . expression SUB expression
@@ -302,15 +294,23 @@ state 12
     (8) expression -> . INT
     (9) expression -> . REAL
     (10) expression -> . VAR
-    (11) expression -> . LIST LBRACKET INT RBRACKET
+    (11) expression -> . VAR ASSIGN LIST LBRACKET INT RBRACKET
+    (12) expression -> . VAR LBRACKET INT RBRACKET
 
+    LIST            shift and go to state 20
     VAR             shift and go to state 2
     LPAREN          shift and go to state 3
     INT             shift and go to state 4
     REAL            shift and go to state 5
-    LIST            shift and go to state 6
 
-    expression                     shift and go to state 20
+    expression                     shift and go to state 19
+
+state 12
+
+    (12) expression -> VAR LBRACKET . INT RBRACKET
+
+    INT             shift and go to state 21
+
 
 state 13
 
@@ -321,22 +321,15 @@ state 13
     (5) expression -> expression . DIV expression
     (6) expression -> expression . POW expression
 
-    RPAREN          shift and go to state 21
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    RPAREN          shift and go to state 22
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
 
 state 14
-
-    (11) expression -> LIST LBRACKET . INT RBRACKET
-
-    INT             shift and go to state 22
-
-
-state 15
 
     (2) expression -> expression ADD expression .
     (2) expression -> expression . ADD expression
@@ -352,11 +345,11 @@ state 15
   ! shift/reduce conflict for POW resolved as shift
     $end            reduce using rule 2 (expression -> expression ADD expression .)
     RPAREN          reduce using rule 2 (expression -> expression ADD expression .)
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
   ! ADD             [ reduce using rule 2 (expression -> expression ADD expression .) ]
   ! SUB             [ reduce using rule 2 (expression -> expression ADD expression .) ]
@@ -365,7 +358,7 @@ state 15
   ! POW             [ reduce using rule 2 (expression -> expression ADD expression .) ]
 
 
-state 16
+state 15
 
     (3) expression -> expression SUB expression .
     (2) expression -> expression . ADD expression
@@ -381,11 +374,11 @@ state 16
   ! shift/reduce conflict for POW resolved as shift
     $end            reduce using rule 3 (expression -> expression SUB expression .)
     RPAREN          reduce using rule 3 (expression -> expression SUB expression .)
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
   ! ADD             [ reduce using rule 3 (expression -> expression SUB expression .) ]
   ! SUB             [ reduce using rule 3 (expression -> expression SUB expression .) ]
@@ -394,7 +387,7 @@ state 16
   ! POW             [ reduce using rule 3 (expression -> expression SUB expression .) ]
 
 
-state 17
+state 16
 
     (4) expression -> expression MUL expression .
     (2) expression -> expression . ADD expression
@@ -410,11 +403,11 @@ state 17
   ! shift/reduce conflict for POW resolved as shift
     $end            reduce using rule 4 (expression -> expression MUL expression .)
     RPAREN          reduce using rule 4 (expression -> expression MUL expression .)
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
   ! ADD             [ reduce using rule 4 (expression -> expression MUL expression .) ]
   ! SUB             [ reduce using rule 4 (expression -> expression MUL expression .) ]
@@ -423,7 +416,7 @@ state 17
   ! POW             [ reduce using rule 4 (expression -> expression MUL expression .) ]
 
 
-state 18
+state 17
 
     (5) expression -> expression DIV expression .
     (2) expression -> expression . ADD expression
@@ -439,11 +432,11 @@ state 18
   ! shift/reduce conflict for POW resolved as shift
     $end            reduce using rule 5 (expression -> expression DIV expression .)
     RPAREN          reduce using rule 5 (expression -> expression DIV expression .)
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
   ! ADD             [ reduce using rule 5 (expression -> expression DIV expression .) ]
   ! SUB             [ reduce using rule 5 (expression -> expression DIV expression .) ]
@@ -452,7 +445,7 @@ state 18
   ! POW             [ reduce using rule 5 (expression -> expression DIV expression .) ]
 
 
-state 19
+state 18
 
     (6) expression -> expression POW expression .
     (2) expression -> expression . ADD expression
@@ -468,11 +461,11 @@ state 19
   ! shift/reduce conflict for POW resolved as shift
     $end            reduce using rule 6 (expression -> expression POW expression .)
     RPAREN          reduce using rule 6 (expression -> expression POW expression .)
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
   ! ADD             [ reduce using rule 6 (expression -> expression POW expression .) ]
   ! SUB             [ reduce using rule 6 (expression -> expression POW expression .) ]
@@ -481,7 +474,7 @@ state 19
   ! POW             [ reduce using rule 6 (expression -> expression POW expression .) ]
 
 
-state 20
+state 19
 
     (1) expression -> VAR ASSIGN expression .
     (2) expression -> expression . ADD expression
@@ -497,11 +490,11 @@ state 20
   ! shift/reduce conflict for POW resolved as shift
     $end            reduce using rule 1 (expression -> VAR ASSIGN expression .)
     RPAREN          reduce using rule 1 (expression -> VAR ASSIGN expression .)
-    ADD             shift and go to state 7
-    SUB             shift and go to state 8
-    MUL             shift and go to state 9
-    DIV             shift and go to state 10
-    POW             shift and go to state 11
+    ADD             shift and go to state 6
+    SUB             shift and go to state 7
+    MUL             shift and go to state 8
+    DIV             shift and go to state 9
+    POW             shift and go to state 10
 
   ! ADD             [ reduce using rule 1 (expression -> VAR ASSIGN expression .) ]
   ! SUB             [ reduce using rule 1 (expression -> VAR ASSIGN expression .) ]
@@ -510,7 +503,21 @@ state 20
   ! POW             [ reduce using rule 1 (expression -> VAR ASSIGN expression .) ]
 
 
+state 20
+
+    (11) expression -> VAR ASSIGN LIST . LBRACKET INT RBRACKET
+
+    LBRACKET        shift and go to state 23
+
+
 state 21
+
+    (12) expression -> VAR LBRACKET INT . RBRACKET
+
+    RBRACKET        shift and go to state 24
+
+
+state 22
 
     (7) expression -> LPAREN expression RPAREN .
 
@@ -523,28 +530,53 @@ state 21
     RPAREN          reduce using rule 7 (expression -> LPAREN expression RPAREN .)
 
 
-state 22
-
-    (11) expression -> LIST LBRACKET INT . RBRACKET
-
-    RBRACKET        shift and go to state 23
-
-
 state 23
 
-    (11) expression -> LIST LBRACKET INT RBRACKET .
+    (11) expression -> VAR ASSIGN LIST LBRACKET . INT RBRACKET
 
-    ADD             reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
-    SUB             reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
-    MUL             reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
-    DIV             reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
-    POW             reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
-    $end            reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
-    RPAREN          reduce using rule 11 (expression -> LIST LBRACKET INT RBRACKET .)
+    INT             shift and go to state 25
+
+
+state 24
+
+    (12) expression -> VAR LBRACKET INT RBRACKET .
+
+    ADD             reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+    SUB             reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+    MUL             reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+    DIV             reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+    POW             reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+    $end            reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+    RPAREN          reduce using rule 12 (expression -> VAR LBRACKET INT RBRACKET .)
+
+
+state 25
+
+    (11) expression -> VAR ASSIGN LIST LBRACKET INT . RBRACKET
+
+    RBRACKET        shift and go to state 26
+
+
+state 26
+
+    (11) expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .
+
+    ADD             reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
+    SUB             reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
+    MUL             reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
+    DIV             reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
+    POW             reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
+    $end            reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
+    RPAREN          reduce using rule 11 (expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET .)
 
 WARNING: 
 WARNING: Conflicts:
 WARNING: 
+WARNING: shift/reduce conflict for ADD in state 14 resolved as shift
+WARNING: shift/reduce conflict for SUB in state 14 resolved as shift
+WARNING: shift/reduce conflict for MUL in state 14 resolved as shift
+WARNING: shift/reduce conflict for DIV in state 14 resolved as shift
+WARNING: shift/reduce conflict for POW in state 14 resolved as shift
 WARNING: shift/reduce conflict for ADD in state 15 resolved as shift
 WARNING: shift/reduce conflict for SUB in state 15 resolved as shift
 WARNING: shift/reduce conflict for MUL in state 15 resolved as shift
@@ -570,8 +602,3 @@ WARNING: shift/reduce conflict for SUB in state 19 resolved as shift
 WARNING: shift/reduce conflict for MUL in state 19 resolved as shift
 WARNING: shift/reduce conflict for DIV in state 19 resolved as shift
 WARNING: shift/reduce conflict for POW in state 19 resolved as shift
-WARNING: shift/reduce conflict for ADD in state 20 resolved as shift
-WARNING: shift/reduce conflict for SUB in state 20 resolved as shift
-WARNING: shift/reduce conflict for MUL in state 20 resolved as shift
-WARNING: shift/reduce conflict for DIV in state 20 resolved as shift
-WARNING: shift/reduce conflict for POW in state 20 resolved as shift

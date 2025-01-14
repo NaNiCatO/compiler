@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'ADD ASSIGN COS DIV EQ ERR GT GTE INT INTDIV LBRACKET LIST LPAREN LT LTE MUL NEQ POW RBRACKET REAL RPAREN SIN SUB TAN VARexpression : VAR ASSIGN expressionexpression : expression ADD expression\n                  | expression SUB expression\n                  | expression MUL expression\n                  | expression DIV expression\n                  | expression POW expressionexpression : LPAREN expression RPARENexpression : INT\n                  | REALexpression : VARexpression : LIST LBRACKET INT RBRACKET'
+_lr_signature = 'ADD ASSIGN DIV EQ ERR GT GTE INT INTDIV LBRACKET LIST LPAREN LT LTE MUL NEQ POW RBRACKET REAL RPAREN SUB VARexpression : VAR ASSIGN expressionexpression : expression ADD expression\n                  | expression SUB expression\n                  | expression MUL expression\n                  | expression DIV expression\n                  | expression POW expressionexpression : LPAREN expression RPARENexpression : INT\n                  | REALexpression : VARexpression : VAR ASSIGN LIST LBRACKET INT RBRACKETexpression : VAR LBRACKET INT RBRACKET'
     
-_lr_action_items = {'VAR':([0,3,7,8,9,10,11,12,],[2,2,2,2,2,2,2,2,]),'LPAREN':([0,3,7,8,9,10,11,12,],[3,3,3,3,3,3,3,3,]),'INT':([0,3,7,8,9,10,11,12,14,],[4,4,4,4,4,4,4,4,22,]),'REAL':([0,3,7,8,9,10,11,12,],[5,5,5,5,5,5,5,5,]),'LIST':([0,3,7,8,9,10,11,12,],[6,6,6,6,6,6,6,6,]),'$end':([1,2,4,5,15,16,17,18,19,20,21,23,],[0,-10,-8,-9,-2,-3,-4,-5,-6,-1,-7,-11,]),'ADD':([1,2,4,5,13,15,16,17,18,19,20,21,23,],[7,-10,-8,-9,7,7,7,7,7,7,7,-7,-11,]),'SUB':([1,2,4,5,13,15,16,17,18,19,20,21,23,],[8,-10,-8,-9,8,8,8,8,8,8,8,-7,-11,]),'MUL':([1,2,4,5,13,15,16,17,18,19,20,21,23,],[9,-10,-8,-9,9,9,9,9,9,9,9,-7,-11,]),'DIV':([1,2,4,5,13,15,16,17,18,19,20,21,23,],[10,-10,-8,-9,10,10,10,10,10,10,10,-7,-11,]),'POW':([1,2,4,5,13,15,16,17,18,19,20,21,23,],[11,-10,-8,-9,11,11,11,11,11,11,11,-7,-11,]),'ASSIGN':([2,],[12,]),'RPAREN':([2,4,5,13,15,16,17,18,19,20,21,23,],[-10,-8,-9,21,-2,-3,-4,-5,-6,-1,-7,-11,]),'LBRACKET':([6,],[14,]),'RBRACKET':([22,],[23,]),}
+_lr_action_items = {'VAR':([0,3,6,7,8,9,10,11,],[2,2,2,2,2,2,2,2,]),'LPAREN':([0,3,6,7,8,9,10,11,],[3,3,3,3,3,3,3,3,]),'INT':([0,3,6,7,8,9,10,11,12,23,],[4,4,4,4,4,4,4,4,21,25,]),'REAL':([0,3,6,7,8,9,10,11,],[5,5,5,5,5,5,5,5,]),'$end':([1,2,4,5,14,15,16,17,18,19,22,24,26,],[0,-10,-8,-9,-2,-3,-4,-5,-6,-1,-7,-12,-11,]),'ADD':([1,2,4,5,13,14,15,16,17,18,19,22,24,26,],[6,-10,-8,-9,6,6,6,6,6,6,6,-7,-12,-11,]),'SUB':([1,2,4,5,13,14,15,16,17,18,19,22,24,26,],[7,-10,-8,-9,7,7,7,7,7,7,7,-7,-12,-11,]),'MUL':([1,2,4,5,13,14,15,16,17,18,19,22,24,26,],[8,-10,-8,-9,8,8,8,8,8,8,8,-7,-12,-11,]),'DIV':([1,2,4,5,13,14,15,16,17,18,19,22,24,26,],[9,-10,-8,-9,9,9,9,9,9,9,9,-7,-12,-11,]),'POW':([1,2,4,5,13,14,15,16,17,18,19,22,24,26,],[10,-10,-8,-9,10,10,10,10,10,10,10,-7,-12,-11,]),'ASSIGN':([2,],[11,]),'RPAREN':([2,4,5,13,14,15,16,17,18,19,22,24,26,],[-10,-8,-9,22,-2,-3,-4,-5,-6,-1,-7,-12,-11,]),'LBRACKET':([2,20,],[12,23,]),'LIST':([11,],[20,]),'RBRACKET':([21,25,],[24,26,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'expression':([0,3,7,8,9,10,11,12,],[1,13,15,16,17,18,19,20,]),}
+_lr_goto_items = {'expression':([0,3,6,7,8,9,10,11,],[1,13,14,15,16,17,18,19,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,15 +27,16 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> expression","S'",1,None,None,None),
-  ('expression -> VAR ASSIGN expression','expression',3,'p_assignment','main.py',142),
-  ('expression -> expression ADD expression','expression',3,'p_expression_arithmetic','main.py',157),
-  ('expression -> expression SUB expression','expression',3,'p_expression_arithmetic','main.py',158),
-  ('expression -> expression MUL expression','expression',3,'p_expression_arithmetic','main.py',159),
-  ('expression -> expression DIV expression','expression',3,'p_expression_arithmetic','main.py',160),
-  ('expression -> expression POW expression','expression',3,'p_expression_arithmetic','main.py',161),
-  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_group','main.py',178),
-  ('expression -> INT','expression',1,'p_expression_number','main.py',182),
-  ('expression -> REAL','expression',1,'p_expression_number','main.py',183),
-  ('expression -> VAR','expression',1,'p_expression_var','main.py',187),
-  ('expression -> LIST LBRACKET INT RBRACKET','expression',4,'p_expression_list_access','main.py',196),
+  ('expression -> VAR ASSIGN expression','expression',3,'p_assignment','main.py',80),
+  ('expression -> expression ADD expression','expression',3,'p_expression_arithmetic','main.py',94),
+  ('expression -> expression SUB expression','expression',3,'p_expression_arithmetic','main.py',95),
+  ('expression -> expression MUL expression','expression',3,'p_expression_arithmetic','main.py',96),
+  ('expression -> expression DIV expression','expression',3,'p_expression_arithmetic','main.py',97),
+  ('expression -> expression POW expression','expression',3,'p_expression_arithmetic','main.py',98),
+  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_group','main.py',115),
+  ('expression -> INT','expression',1,'p_expression_number','main.py',119),
+  ('expression -> REAL','expression',1,'p_expression_number','main.py',120),
+  ('expression -> VAR','expression',1,'p_expression_var','main.py',124),
+  ('expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET','expression',6,'p_expression_list_declaration','main.py',133),
+  ('expression -> VAR LBRACKET INT RBRACKET','expression',4,'p_expression_list_access','main.py',142),
 ]
