@@ -58,7 +58,8 @@ def t_newline(t):
 
 def t_error(t):
     print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}.")
-    t.lexer.skip(1)
+    t.lexer.skip(len(t.value))  # Skip the entire invalid token.
+
 
 # Build the lexer
 lexer = lex.lex()
@@ -152,10 +153,11 @@ def p_expression_list_access(p):
         p[0] = f"(({p[1]}[({p[3]})]))"
 
 def p_error(p):
+    """Handle syntax errors."""
     if p:
-        print(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
+        raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
     else:
-        print("SyntaxError at EOF")
+        raise SyntaxError("SyntaxError at EOF")
 
 # Build the parser
 parser = yacc.yacc()
@@ -172,8 +174,10 @@ def parse_input(input_file, bracket_output, csv_output):
                     bracket_file.write(f"{result}\n")
                 else:
                     bracket_file.write(f"SyntaxError at line {lineno}\n")
+            except SyntaxError as e:
+                bracket_file.write(f"{str(e)}\n")
             except Exception as e:
-                bracket_file.write(f"SyntaxError at line {lineno}: {e}\n")
+                bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
 
     # Write symbol table to a CSV file
     with open(csv_output, 'w', newline='') as csvfile:
