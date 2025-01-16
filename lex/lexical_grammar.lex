@@ -1,0 +1,26 @@
+# Lexical Grammar Definitions
+INT: -?\d+
+REAL: -?(\d+\.\d*|\.\d+)(e[+-]?\d+)?
+VAR: [a-zA-Z_][a-zA-Z_0-9]*
+LIST: list
+SIN: sin
+COS: cos
+TAN: tan
+ADD: \+
+SUB: -
+MUL: \*
+DIV: /
+INTDIV: //
+POW: \^
+ASSIGN: =
+LPAREN: \(
+RPAREN: \)
+GT: >
+GTE: >=
+LT: <
+LTE: <=
+EQ: ==
+NEQ: !=
+LBRACKET: \[
+RBRACKET: \]
+ERR: [^\\s\\w\\d+\-*/^=<>!()[\\]\\.]
