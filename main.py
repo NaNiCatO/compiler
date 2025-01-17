@@ -1,6 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 import csv
+import math
 
 # List of token names
 tokens = (
@@ -106,6 +107,19 @@ def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, valu
 
 
 # Grammar rules
+def p_expression_var_from_list(p):
+    'expression : VAR ASSIGN VAR LBRACKET INT RBRACKET'
+    list_value = symbol_table.get(p[3], {}).get("value", [])
+    if not isinstance(list_value, list):
+        p[0] = f"Semantic Error: '{p[3]}' is not a list."
+    elif p[5] < 0 or p[5] >= len(list_value):
+        p[0] = f"Semantic Error: Index out of range for list '{p[3]}' at index {p[5]}."
+    else:
+        value = list_value[p[5]]
+        add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "variable", value)
+        p[0] = f"({p[1]}={value})"
+
+
 def p_assignment(p):
     'expression : VAR ASSIGN expression'
     lexeme = p[1]
@@ -118,6 +132,17 @@ def p_assignment(p):
         add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
         p[0] = f"({lexeme}={p[3]})"
 
+
+def p_expression_comparison(p):
+    '''expression : expression GT expression
+                  | expression GTE expression
+                  | expression LT expression
+                  | expression LTE expression
+                  | expression EQ expression
+                  | expression NEQ expression'''
+    p[0] = f"({p[1]}{p[2]}{p[3]})"
+
+
 def p_expression_arithmetic(p):
     '''expression : expression ADD expression
                   | expression SUB expression
@@ -126,9 +151,19 @@ def p_expression_arithmetic(p):
                   | expression POW expression'''
     p[0] = f"({p[1]}{p[2]}{p[3]})"
 
+
+def p_expression_intdiv(p):
+    'expression : expression INTDIV expression'
+    p[0] = f"({p[1]}//{p[3]})"
+
+
 def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
-    p[0] = f"({p[2]})"
+    # Avoid adding extra parentheses if already enclosed
+    if isinstance(p[2], str) and p[2].startswith('(') and p[2].endswith(')'):
+        p[0] = p[2]
+    else:
+        p[0] = f"({p[2]})"
 
 def p_expression_number(p):
     '''expression : INT
@@ -154,7 +189,6 @@ def p_expression_list_declaration(p):
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", [0] * p[5])
         p[0] = f"({p[1]}=(list[({p[5]})]))"
 
-
 def p_expression_list_access(p):
     'expression : VAR LBRACKET INT RBRACKET'
     list_value = symbol_table.get(p[1], {}).get("value", [])
@@ -165,11 +199,34 @@ def p_expression_list_access(p):
     else:
         p[0] = f"(({p[1]}[({p[3]})]))"
 
-def p_expression_function(p):
+
+def p_expression_list_assignment(p):
+    'expression : VAR LBRACKET INT RBRACKET ASSIGN expression'
+    list_value = symbol_table.get(p[1], {}).get("value", [])
+    if not isinstance(list_value, list):
+        p[0] = f"Semantic Error: '{p[1]}' is not a list."
+    elif p[3] < 0 or p[3] >= len(list_value):
+        p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
+    else:
+        try:
+            list_value[p[3]] = eval(p[6])
+        except:
+            list_value[p[3]] = p[6]
+        p[0] = f"({p[1]}[({p[3]})]={p[6]})"
+        add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", list_value)
+
+
+def p_function_call(p):
     '''expression : SIN LPAREN expression RPAREN
                   | COS LPAREN expression RPAREN
                   | TAN LPAREN expression RPAREN'''
-    p[0] = f"({p[1]}({p[3]}))"
+    if p[1] == 'sin':
+        p[0] = math.sin(math.radians(eval(p[3])))  # Convert to radians
+    elif p[1] == 'cos':
+        p[0] = math.cos(math.radians(eval(p[3])))
+    elif p[1] == 'tan':
+        p[0] = math.tan(math.radians(eval(p[3])))
+
 
 def p_error(p):
     if p:

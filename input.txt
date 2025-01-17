@@ -3,11 +3,24 @@
 5NUM ^ 3.0
 x = 5
 10 * x
-z=y
 x = y
 x != 5
 (2 + 5)
-x = list[10]
+2 + 5 * 3
+x = list[2]
 x[0] + x[1]
-~
-#*$(*@#)($*@)
+sin(30)
+cos(45)
+tan(60)
+x = sin(30)
+y = cos(45)
+z = tan(60)
+result = x + y - z
+w = list[3]
+w[0] = sin(30)
+w[1] = cos(45)
+w[2] = 5
+w[0] + w[1] + w[2]
+DE = w[0]
+sd =assasd
+g = sigma(20)

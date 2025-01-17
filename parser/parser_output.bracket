@@ -3,11 +3,24 @@
 SyntaxError at line 3, pos 2
 (x=5)
 (10*x)
-Undefined variable 'y' at line 6, pos 3
-Undefined variable 'y' at line 7, pos 5
-SyntaxError at line 8, pos 3
-((2+5))
-(x=(list[(10)]))
+Undefined variable 'y' at line 6, pos 5
+(x!=5)
+(2+5)
+(2+(5*3))
+(x=(list[(2)]))
 (((x[(0)]))+((x[(1)])))
-SyntaxError at line 12, pos 1
-SyntaxError at line 13, pos 1
+0.49999999999999994
+0.7071067811865476
+1.7320508075688767
+(x=0.49999999999999994)
+(y=0.7071067811865476)
+(z=1.7320508075688767)
+(result=(x+(y-z)))
+(w=(list[(3)]))
+(w[(0)]=0.49999999999999994)
+(w[(1)]=0.7071067811865476)
+(w[(2)]=5)
+(((w[(0)]))+(((w[(1)]))+((w[(2)]))))
+(DE=0.49999999999999994)
+Undefined variable 'assasd' at line 25, pos 5
+SyntaxError at line 26, pos 10

@@ -1,39 +1,26 @@
-<program> ::= expression
+<expression> ::= <variable> "=" <expression>                     # Assignment
+               | <variable> "=" <variable> "[" <integer> "]"     # Assign from list access
+               | <variable> "=" "list" "[" <integer> "]"         # List declaration
+               | <variable> "[" <integer> "]" "=" <expression>   # List element assignment
+               | <function_call>                                 # Function calls
+               | <expression> <arithmetic_op> <expression>       # Arithmetic operations
+               | <expression> <comparison_op> <expression>       # Comparison operations
+               | "(" <expression> ")"                            # Grouping
+               | <number>                                        # Number
+               | <variable>                                      # Variable
+               | <variable> "[" <integer> "]"                    # List access
 
-<expression> ::= variable_assignment
-               | arithmetic_expression
-               | group_expression
-               | number
-               | variable
-               | list_declaration
-               | list_access
-               | function_expression
+<function_call> ::= "sin" "(" <expression> ")"                   # Sine function
+                  | "cos" "(" <expression> ")"                   # Cosine function
+                  | "tan" "(" <expression> ")"                   # Tangent function
 
-<variable_assignment> ::= variable ASSIGN expression
+<arithmetic_op> ::= "+" | "-" | "*" | "/" | "//" | "^"           # Arithmetic operators
+<comparison_op> ::= ">" | ">=" | "<" | "<=" | "==" | "!="        # Comparison operators
 
-<arithmetic_expression> ::= expression ADD expression
-                          | expression SUB expression
-                          | expression MUL expression
-                          | expression DIV expression
-                          | expression POW expression
+<number> ::= <integer>                                           # Integer
+           | <real>                                              # Real number
 
-<group_expression> ::= LPAREN expression RPAREN
+<integer> ::= [ "-" ] DIGIT { DIGIT }                            # Integer representation
+<real> ::= [ "-" ] DIGIT { DIGIT } "." DIGIT { DIGIT }           # Real representation
 
-<number> ::= INT | REAL
-
-<variable> ::= [a-zA-Z_][a-zA-Z_0-9]*
-
-<list_declaration> ::= variable ASSIGN LIST LBRACKET INT RBRACKET
-
-<list_access> ::= variable LBRACKET INT RBRACKET
-
-<function_expression> ::= sin_function
-                        | cos_function
-                        | tan_function
-
-<sin_function> ::= SIN LPAREN expression RPAREN
-<cos_function> ::= COS LPAREN expression RPAREN
-<tan_function> ::= TAN LPAREN expression RPAREN
-
-<INT> ::= ["-"]? [0-9]+
-<REAL> ::= ["-"]? ([0-9]+ "." [0-9]* | "." [0-9]+) ["e" ["+" | "-"] [0-9]+]?
+<variable> ::= LETTER { LETTER | DIGIT | "_" }                   # Variable names
