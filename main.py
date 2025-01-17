@@ -72,8 +72,9 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}.")
-    t.lexer.skip(len(t.value))
+    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}")
+    t.lexer.skip(1)  # Skip the invalid character, not the entire token
+
 
 # Build the lexer
 lexer = lex.lex()
@@ -141,6 +142,7 @@ def p_expression_var(p):
     else:
         p[0] = lexeme
 
+
 def p_expression_list_declaration(p):
     'expression : VAR ASSIGN LIST LBRACKET INT RBRACKET'
     if p[5] <= 0:
@@ -148,6 +150,7 @@ def p_expression_list_declaration(p):
     else:
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", [0] * p[5])
         p[0] = f"({p[1]}=(list[({p[5]})]))"
+
 
 def p_expression_list_access(p):
     'expression : VAR LBRACKET INT RBRACKET'
@@ -171,6 +174,7 @@ def p_error(p):
     else:
         raise SyntaxError("SyntaxError at EOF")
 
+
 # Build the parser
 parser = yacc.yacc()
 
@@ -189,12 +193,14 @@ def process_lexical(input_file, output_file):
                 tokens.append(f"{tok.value}/{tok.type}")
             outfile.write(' '.join(tokens) + '\n')
 
+
 # Function to process syntactic analysis
 def process_syntax(input_file, bracket_output):
     with open(input_file, 'r') as infile, open(bracket_output, 'w') as bracket_file:
         for lineno, line in enumerate(infile, start=1):
             try:
-                result = parser.parse(line)
+                lexer.lineno = lineno  # Explicitly set the lexer's line number
+                result = parser.parse(line, lexer=lexer)
                 if result:
                     bracket_file.write(f"{result}\n")
                 else:
@@ -203,6 +209,7 @@ def process_syntax(input_file, bracket_output):
                 bracket_file.write(f"{str(e)}\n")
             except Exception as e:
                 bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
+
 
 # Function to output the symbol table
 def write_symbol_table(output_file):

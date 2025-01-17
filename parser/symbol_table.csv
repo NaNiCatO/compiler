@@ -1,6 +1,2 @@
 lexeme,line_number,start_pos,length,type,value
-x,12,0,1,variable,(sin(30))
-y,13,0,1,variable,(cos(45))
-z,14,0,1,variable,(tan(60))
-result,15,0,6,variable,(x+(y-z))
-w,16,0,1,list,"[0, 0, 0]"
+x,9,0,1,list,"[0, 0]"
