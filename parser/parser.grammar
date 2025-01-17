@@ -1,0 +1,39 @@
+<program> ::= expression
+
+<expression> ::= variable_assignment
+               | arithmetic_expression
+               | group_expression
+               | number
+               | variable
+               | list_declaration
+               | list_access
+               | function_expression
+
+<variable_assignment> ::= variable ASSIGN expression
+
+<arithmetic_expression> ::= expression ADD expression
+                          | expression SUB expression
+                          | expression MUL expression
+                          | expression DIV expression
+                          | expression POW expression
+
+<group_expression> ::= LPAREN expression RPAREN
+
+<number> ::= INT | REAL
+
+<variable> ::= [a-zA-Z_][a-zA-Z_0-9]*
+
+<list_declaration> ::= variable ASSIGN LIST LBRACKET INT RBRACKET
+
+<list_access> ::= variable LBRACKET INT RBRACKET
+
+<function_expression> ::= sin_function
+                        | cos_function
+                        | tan_function
+
+<sin_function> ::= SIN LPAREN expression RPAREN
+<cos_function> ::= COS LPAREN expression RPAREN
+<tan_function> ::= TAN LPAREN expression RPAREN
+
+<INT> ::= ["-"]? [0-9]+
+<REAL> ::= ["-"]? ([0-9]+ "." [0-9]* | "." [0-9]+) ["e" ["+" | "-"] [0-9]+]?

@@ -9,3 +9,5 @@ SyntaxError at line 8, pos 3
 ((2+5))
 (x=(list[(2)]))
 (((x[(0)]))+((x[(1)])))
+SyntaxError at line 12, pos 1
+SyntaxError at line 13, pos 1
