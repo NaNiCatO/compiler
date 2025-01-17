@@ -72,8 +72,9 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}")
-    t.lexer.skip(1)  # Skip the invalid character, not the entire token
+    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos + 1}")
+    t.lexer.skip(1)  # Skip the invalid character
+
 
 
 # Build the lexer
@@ -137,7 +138,7 @@ def p_expression_var(p):
     lexeme = p[1]
     if lexeme not in symbol_table:
         line_number = p.lineno(1)
-        start_pos = p.lexpos(1)
+        start_pos = p.lexpos(1) + 1  # Adjust position to start from 1
         p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
     else:
         p[0] = lexeme
@@ -170,7 +171,7 @@ def p_expression_function(p):
 
 def p_error(p):
     if p:
-        raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
+        raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos + 1}")
     else:
         raise SyntaxError("SyntaxError at EOF")
 

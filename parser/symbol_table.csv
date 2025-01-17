@@ -1,2 +1,2 @@
 lexeme,line_number,start_pos,length,type,value
-x,9,0,1,list,"[0, 0]"
+x,10,0,1,list,"[0, 0]"

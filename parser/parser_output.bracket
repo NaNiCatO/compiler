@@ -1,10 +1,11 @@
 (23+8)
 (2.5*0)
-SyntaxError at line 3, pos 1
+SyntaxError at line 3, pos 2
 (x=5)
 (10*x)
-Undefined variable 'y' at line 6, pos 4
-SyntaxError at line 7, pos 2
+Undefined variable 'y' at line 6, pos 3
+Undefined variable 'y' at line 7, pos 5
+SyntaxError at line 8, pos 3
 ((2+5))
 (x=(list[(2)]))
 (((x[(0)]))+((x[(1)])))
