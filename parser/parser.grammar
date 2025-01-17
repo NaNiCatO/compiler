@@ -1,0 +1,39 @@
+<program> ::= expression
+
+<expression> ::= variable_assignment
+               | arithmetic_expression
+               | group_expression
+               | number
+               | variable
+               | list_declaration
+               | list_access
+               | function_expression
+
+<variable_assignment> ::= variable "=" expression
+
+<arithmetic_expression> ::= expression "+" expression
+                          | expression "-" expression
+                          | expression "*" expression
+                          | expression "/" expression
+                          | expression "^" expression
+
+<group_expression> ::= "(" expression ")"
+
+<number> ::= INT | REAL
+
+<variable> ::= [a-zA-Z_][a-zA-Z_0-9]*
+
+<list_declaration> ::= variable "=" "list" "[" INT "]"
+
+<list_access> ::= variable "[" INT "]"
+
+<function_expression> ::= sin_function
+                        | cos_function
+                        | tan_function
+
+<sin_function> ::= "sin" "(" expression ")"
+<cos_function> ::= "cos" "(" expression ")"
+<tan_function> ::= "tan" "(" expression ")"
+
+<INT> ::= ["-"]? [0-9]+
+<REAL> ::= ["-"]? ([0-9]+ "." [0-9]* | "." [0-9]+) ["e" ["+" | "-"] [0-9]+]?
