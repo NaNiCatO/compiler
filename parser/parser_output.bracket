@@ -7,7 +7,7 @@ Undefined variable 'y' at line 6, pos 3
 Undefined variable 'y' at line 7, pos 5
 SyntaxError at line 8, pos 3
 ((2+5))
-(x=(list[(2)]))
+(x=(list[(10)]))
 (((x[(0)]))+((x[(1)])))
 SyntaxError at line 12, pos 1
 SyntaxError at line 13, pos 1

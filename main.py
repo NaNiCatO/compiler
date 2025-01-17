@@ -85,6 +85,7 @@ symbol_table = {}
 
 def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, value=None):
     """Add or update an entry in the symbol table."""
+    start_pos = start_pos + 1  # Convert to 1-based index
     if lexeme not in symbol_table:
         symbol_table[lexeme] = {
             "lexeme": lexeme,
@@ -102,6 +103,7 @@ def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, valu
             "type": token_type,
             "value": value
         })
+
 
 # Grammar rules
 def p_assignment(p):
