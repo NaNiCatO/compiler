@@ -101,6 +101,41 @@ def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, valu
             "value": value
         })
 
+# Assembly code generation
+assembly_code = []
+register_counter = 0
+
+def get_register():
+    global register_counter
+    register_counter += 1
+    return f"R{register_counter - 1}"
+
+def reset_registers():
+    global register_counter
+    register_counter = 0
+
+def generate_assembly(operation, operand1, operand2=None, result_register=None):
+    if result_register is None:
+        result_register = get_register()
+    
+    if operand2 is None:
+        assembly_code.append(f"LD {result_register} #{operand1}")
+    else:
+        if operation == '+':
+            assembly_code.append(f"ADD.i {result_register} {operand1} {operand2}")
+        elif operation == '-':
+            assembly_code.append(f"SUB.i {result_register} {operand1} {operand2}")
+        elif operation == '*':
+            assembly_code.append(f"MUL.i {result_register} {operand1} {operand2}")
+        elif operation == '/':
+            assembly_code.append(f"DIV.i {result_register} {operand1} {operand2}")
+        elif operation == '^':
+            assembly_code.append(f"POW.i {result_register} {operand1} {operand2}")
+        elif operation == '!=':
+            assembly_code.append(f"NE.f {result_register} {operand1} {operand2}")
+    
+    return result_register
+
 # Grammar rules
 def p_assignment(p):
     'expression : VAR ASSIGN expression'
@@ -112,6 +147,7 @@ def p_assignment(p):
         p[0] = p[3]
     else:
         add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
+        assembly_code.append(f"ST @{lexeme} {p[3]}")
         p[0] = f"({lexeme}={p[3]})"
 
 def p_expression_arithmetic(p):
@@ -120,6 +156,8 @@ def p_expression_arithmetic(p):
                   | expression MUL expression
                   | expression DIV expression
                   | expression POW expression'''
+    result_register = generate_assembly(p[2], p[1], p[3])
+    assembly_code.append(f"ST @print {result_register}\n")
     p[0] = f"({p[1]}{p[2]}{p[3]})"
 
 def p_expression_group(p):
@@ -129,6 +167,7 @@ def p_expression_group(p):
 def p_expression_number(p):
     '''expression : INT
                   | REAL'''
+    result_register = generate_assembly(None, p[1])
     p[0] = str(p[1])
 
 def p_expression_var(p):
@@ -139,6 +178,7 @@ def p_expression_var(p):
         start_pos = p.lexpos(1)
         p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
     else:
+        result_register = generate_assembly(None, f"@{lexeme}")
         p[0] = lexeme
 
 def p_expression_list_declaration(p):
@@ -147,6 +187,18 @@ def p_expression_list_declaration(p):
         p[0] = "Semantic Error: List size must be positive."
     else:
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", [0] * p[5])
+        assembly_code.append(f"LD R0 #0 // load 0, list {p[1]}[{p[5]}] we should set {p[1]}[0] and {p[1]}[1] to 0")
+        assembly_code.append(f"LD R1 @{p[1]} // load base address of {p[1]}")
+        assembly_code.append(f"LD R2 #0 // load offset 0")
+        assembly_code.append(f"LD R3 #4 // size = 4 bytes")
+        assembly_code.append(f"MUL.i R4 R2 R3 // offset * size")
+        assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[0] address")
+        assembly_code.append(f"ST R5 R0 // {p[1]}[0] = 0")
+        assembly_code.append(f"LD R2 #1")
+        assembly_code.append(f"LD R3 #4")
+        assembly_code.append(f"MUL.i R4 R2 R3")
+        assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[1] address")
+        assembly_code.append(f"ST R5 R0 // {p[1]}[1] = 0\n")
         p[0] = f"({p[1]}=(list[({p[5]})]))"
 
 def p_expression_list_access(p):
@@ -157,15 +209,24 @@ def p_expression_list_access(p):
     elif p[3] < 0 or p[3] >= len(list_value):
         p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
     else:
+        assembly_code.append(f"LD R0 @{p[1]}")
+        assembly_code.append(f"LD R1 #{p[3]}")
+        assembly_code.append(f"LD R2 #4")
+        assembly_code.append(f"MUL.i R3 R1 R2")
+        assembly_code.append(f"ADD.i R4 R0 R3")
+        assembly_code.append(f"ST $print R4 // print {p[1]}[{p[3]}]\n")
         p[0] = f"(({p[1]}[({p[3]})]))"
 
 def p_expression_function(p):
     '''expression : SIN LPAREN expression RPAREN
                   | COS LPAREN expression RPAREN
                   | TAN LPAREN expression RPAREN'''
+    result_register = generate_assembly(p[1], p[3])
+    assembly_code.append(f"ST @print {result_register}\n")
     p[0] = f"({p[1]}({p[3]}))"
 
 def p_error(p):
+    assembly_code.append("ERROR\n")
     if p:
         raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
     else:
@@ -218,6 +279,7 @@ def main():
     output_file_tok = "lex/lexical_output.tok"  # Tokenized output
     output_file_bracket = "parser/parser_output.bracket"  # Parsed output
     symbol_table_file = "parser/symbol_table.csv"  # Symbol table output
+    assembly_output_file = "assembly_output.asm"  # Assembly code output
 
     # Lexical analysis
     process_lexical(input_file, output_file_tok)
@@ -227,6 +289,12 @@ def main():
 
     # Write the symbol table to CSV
     write_symbol_table(symbol_table_file)
+
+    # Write the assembly code to file
+    with open(assembly_output_file, 'w') as asm_file:
+        for line in assembly_code:
+            asm_file.write(line + '\n')
+
 
     # Print symbol table to console
     print("Symbol Table:")
