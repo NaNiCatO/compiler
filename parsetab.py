@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'ADD ASSIGN COS DIV EQ ERR GT GTE INT INTDIV LBRACKET LIST LPAREN LT LTE MUL NEQ POW RBRACKET REAL RPAREN SIN SUB TAN VARexpression : VAR ASSIGN expressionexpression : expression ADD expression\n                  | expression SUB expression\n                  | expression MUL expression\n                  | expression DIV expression\n                  | expression POW expressionexpression : LPAREN expression RPARENexpression : INT\n                  | REALexpression : VARexpression : VAR ASSIGN LIST LBRACKET INT RBRACKETexpression : VAR LBRACKET INT RBRACKETexpression : SIN LPAREN expression RPAREN\n                  | COS LPAREN expression RPAREN\n                  | TAN LPAREN expression RPAREN'
+_lr_signature = 'ADD ASSIGN COS DIV EQ ERR GT GTE INT INTDIV LBRACKET LIST LPAREN LT LTE MUL NEQ POW RBRACKET REAL RPAREN SIN SUB TAN VARexpression : VAR ASSIGN VAR LBRACKET INT RBRACKETexpression : VAR ASSIGN expressionexpression : expression GT expression\n                  | expression GTE expression\n                  | expression LT expression\n                  | expression LTE expression\n                  | expression EQ expression\n                  | expression NEQ expressionexpression : expression ADD expression\n                  | expression SUB expression\n                  | expression MUL expression\n                  | expression DIV expression\n                  | expression POW expressionexpression : expression INTDIV expressionexpression : LPAREN expression RPARENexpression : INT\n                  | REALexpression : VARexpression : VAR ASSIGN LIST LBRACKET INT RBRACKETexpression : VAR LBRACKET INT RBRACKETexpression : VAR LBRACKET INT RBRACKET ASSIGN expressionexpression : SIN LPAREN expression RPAREN\n                  | COS LPAREN expression RPAREN\n                  | TAN LPAREN expression RPAREN'
     
-_lr_action_items = {'VAR':([0,3,9,10,11,12,13,14,17,18,19,],[2,2,2,2,2,2,2,2,2,2,2,]),'LPAREN':([0,3,6,7,8,9,10,11,12,13,14,17,18,19,],[3,3,17,18,19,3,3,3,3,3,3,3,3,3,]),'INT':([0,3,9,10,11,12,13,14,15,17,18,19,32,],[4,4,4,4,4,4,4,4,27,4,4,4,37,]),'REAL':([0,3,9,10,11,12,13,14,17,18,19,],[5,5,5,5,5,5,5,5,5,5,5,]),'SIN':([0,3,9,10,11,12,13,14,17,18,19,],[6,6,6,6,6,6,6,6,6,6,6,]),'COS':([0,3,9,10,11,12,13,14,17,18,19,],[7,7,7,7,7,7,7,7,7,7,7,]),'TAN':([0,3,9,10,11,12,13,14,17,18,19,],[8,8,8,8,8,8,8,8,8,8,8,]),'$end':([1,2,4,5,20,21,22,23,24,25,28,33,34,35,36,38,],[0,-10,-8,-9,-2,-3,-4,-5,-6,-1,-7,-12,-13,-14,-15,-11,]),'ADD':([1,2,4,5,16,20,21,22,23,24,25,28,29,30,31,33,34,35,36,38,],[9,-10,-8,-9,9,9,9,9,9,9,9,-7,9,9,9,-12,-13,-14,-15,-11,]),'SUB':([1,2,4,5,16,20,21,22,23,24,25,28,29,30,31,33,34,35,36,38,],[10,-10,-8,-9,10,10,10,10,10,10,10,-7,10,10,10,-12,-13,-14,-15,-11,]),'MUL':([1,2,4,5,16,20,21,22,23,24,25,28,29,30,31,33,34,35,36,38,],[11,-10,-8,-9,11,11,11,11,11,11,11,-7,11,11,11,-12,-13,-14,-15,-11,]),'DIV':([1,2,4,5,16,20,21,22,23,24,25,28,29,30,31,33,34,35,36,38,],[12,-10,-8,-9,12,12,12,12,12,12,12,-7,12,12,12,-12,-13,-14,-15,-11,]),'POW':([1,2,4,5,16,20,21,22,23,24,25,28,29,30,31,33,34,35,36,38,],[13,-10,-8,-9,13,13,13,13,13,13,13,-7,13,13,13,-12,-13,-14,-15,-11,]),'ASSIGN':([2,],[14,]),'RPAREN':([2,4,5,16,20,21,22,23,24,25,28,29,30,31,33,34,35,36,38,],[-10,-8,-9,28,-2,-3,-4,-5,-6,-1,-7,34,35,36,-12,-13,-14,-15,-11,]),'LBRACKET':([2,26,],[15,32,]),'LIST':([14,],[26,]),'RBRACKET':([27,37,],[33,38,]),}
+_lr_action_items = {'VAR':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[2,2,2,2,2,2,2,2,2,2,2,2,2,2,39,2,2,2,2,]),'LPAREN':([0,4,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[4,4,24,25,26,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,]),'INT':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,22,24,25,26,47,48,55,],[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,42,3,3,3,53,54,3,]),'REAL':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,]),'SIN':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,]),'COS':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,]),'TAN':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,]),'$end':([1,2,3,5,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,49,50,51,52,56,57,58,],[0,-18,-16,-17,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-18,-2,-15,-20,-22,-23,-24,-1,-19,-21,]),'GT':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[9,-18,-16,-17,9,9,9,9,9,9,9,9,9,9,9,9,9,-18,9,-15,9,9,9,-20,-22,-23,-24,-1,-19,9,]),'GTE':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[10,-18,-16,-17,10,10,10,10,10,10,10,10,10,10,10,10,10,-18,10,-15,10,10,10,-20,-22,-23,-24,-1,-19,10,]),'LT':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[11,-18,-16,-17,11,11,11,11,11,11,11,11,11,11,11,11,11,-18,11,-15,11,11,11,-20,-22,-23,-24,-1,-19,11,]),'LTE':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[12,-18,-16,-17,12,12,12,12,12,12,12,12,12,12,12,12,12,-18,12,-15,12,12,12,-20,-22,-23,-24,-1,-19,12,]),'EQ':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[13,-18,-16,-17,13,13,13,13,13,13,13,13,13,13,13,13,13,-18,13,-15,13,13,13,-20,-22,-23,-24,-1,-19,13,]),'NEQ':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[14,-18,-16,-17,14,14,14,14,14,14,14,14,14,14,14,14,14,-18,14,-15,14,14,14,-20,-22,-23,-24,-1,-19,14,]),'ADD':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[15,-18,-16,-17,15,15,15,15,15,15,15,15,15,15,15,15,15,-18,15,-15,15,15,15,-20,-22,-23,-24,-1,-19,15,]),'SUB':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[16,-18,-16,-17,16,16,16,16,16,16,16,16,16,16,16,16,16,-18,16,-15,16,16,16,-20,-22,-23,-24,-1,-19,16,]),'MUL':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[17,-18,-16,-17,17,17,17,17,17,17,17,17,17,17,17,17,17,-18,17,-15,17,17,17,-20,-22,-23,-24,-1,-19,17,]),'DIV':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[18,-18,-16,-17,18,18,18,18,18,18,18,18,18,18,18,18,18,-18,18,-15,18,18,18,-20,-22,-23,-24,-1,-19,18,]),'POW':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[19,-18,-16,-17,19,19,19,19,19,19,19,19,19,19,19,19,19,-18,19,-15,19,19,19,-20,-22,-23,-24,-1,-19,19,]),'INTDIV':([1,2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[20,-18,-16,-17,20,20,20,20,20,20,20,20,20,20,20,20,20,-18,20,-15,20,20,20,-20,-22,-23,-24,-1,-19,20,]),'ASSIGN':([2,39,49,56,],[21,21,55,55,]),'RPAREN':([2,3,5,23,27,28,29,30,31,32,33,34,35,36,37,38,39,40,43,44,45,46,49,50,51,52,56,57,58,],[-18,-16,-17,43,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-18,-2,-15,50,51,52,-20,-22,-23,-24,-1,-19,-21,]),'LBRACKET':([2,39,41,],[22,47,48,]),'LIST':([21,],[41,]),'RBRACKET':([42,53,54,],[49,56,57,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'expression':([0,3,9,10,11,12,13,14,17,18,19,],[1,16,20,21,22,23,24,25,29,30,31,]),}
+_lr_goto_items = {'expression':([0,4,9,10,11,12,13,14,15,16,17,18,19,20,21,24,25,26,55,],[1,23,27,28,29,30,31,32,33,34,35,36,37,38,40,44,45,46,58,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,19 +27,28 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> expression","S'",1,None,None,None),
-  ('expression -> VAR ASSIGN expression','expression',3,'p_assignment','main.py',95),
-  ('expression -> expression ADD expression','expression',3,'p_expression_arithmetic','main.py',107),
-  ('expression -> expression SUB expression','expression',3,'p_expression_arithmetic','main.py',108),
-  ('expression -> expression MUL expression','expression',3,'p_expression_arithmetic','main.py',109),
-  ('expression -> expression DIV expression','expression',3,'p_expression_arithmetic','main.py',110),
-  ('expression -> expression POW expression','expression',3,'p_expression_arithmetic','main.py',111),
-  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_group','main.py',115),
-  ('expression -> INT','expression',1,'p_expression_number','main.py',119),
-  ('expression -> REAL','expression',1,'p_expression_number','main.py',120),
-  ('expression -> VAR','expression',1,'p_expression_var','main.py',124),
-  ('expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET','expression',6,'p_expression_list_declaration','main.py',134),
-  ('expression -> VAR LBRACKET INT RBRACKET','expression',4,'p_expression_list_access','main.py',142),
-  ('expression -> SIN LPAREN expression RPAREN','expression',4,'p_expression_function','main.py',152),
-  ('expression -> COS LPAREN expression RPAREN','expression',4,'p_expression_function','main.py',153),
-  ('expression -> TAN LPAREN expression RPAREN','expression',4,'p_expression_function','main.py',154),
+  ('expression -> VAR ASSIGN VAR LBRACKET INT RBRACKET','expression',6,'p_expression_var_from_list','main.py',111),
+  ('expression -> VAR ASSIGN expression','expression',3,'p_assignment','main.py',124),
+  ('expression -> expression GT expression','expression',3,'p_expression_comparison','main.py',137),
+  ('expression -> expression GTE expression','expression',3,'p_expression_comparison','main.py',138),
+  ('expression -> expression LT expression','expression',3,'p_expression_comparison','main.py',139),
+  ('expression -> expression LTE expression','expression',3,'p_expression_comparison','main.py',140),
+  ('expression -> expression EQ expression','expression',3,'p_expression_comparison','main.py',141),
+  ('expression -> expression NEQ expression','expression',3,'p_expression_comparison','main.py',142),
+  ('expression -> expression ADD expression','expression',3,'p_expression_arithmetic','main.py',147),
+  ('expression -> expression SUB expression','expression',3,'p_expression_arithmetic','main.py',148),
+  ('expression -> expression MUL expression','expression',3,'p_expression_arithmetic','main.py',149),
+  ('expression -> expression DIV expression','expression',3,'p_expression_arithmetic','main.py',150),
+  ('expression -> expression POW expression','expression',3,'p_expression_arithmetic','main.py',151),
+  ('expression -> expression INTDIV expression','expression',3,'p_expression_intdiv','main.py',156),
+  ('expression -> LPAREN expression RPAREN','expression',3,'p_expression_group','main.py',161),
+  ('expression -> INT','expression',1,'p_expression_number','main.py',169),
+  ('expression -> REAL','expression',1,'p_expression_number','main.py',170),
+  ('expression -> VAR','expression',1,'p_expression_var','main.py',174),
+  ('expression -> VAR ASSIGN LIST LBRACKET INT RBRACKET','expression',6,'p_expression_list_declaration','main.py',185),
+  ('expression -> VAR LBRACKET INT RBRACKET','expression',4,'p_expression_list_access','main.py',193),
+  ('expression -> VAR LBRACKET INT RBRACKET ASSIGN expression','expression',6,'p_expression_list_assignment','main.py',204),
+  ('expression -> SIN LPAREN expression RPAREN','expression',4,'p_function_call','main.py',220),
+  ('expression -> COS LPAREN expression RPAREN','expression',4,'p_function_call','main.py',221),
+  ('expression -> TAN LPAREN expression RPAREN','expression',4,'p_function_call','main.py',222),
 ]

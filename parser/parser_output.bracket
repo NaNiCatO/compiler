@@ -1,23 +1,26 @@
 (23+8)
 (2.5*0)
-SyntaxError at line 3, pos 1
+SyntaxError at line 3, pos 2
 (x=5)
 (10*x)
-Undefined variable 'y' at line 5, pos 4
-SyntaxError at line 6, pos 2
-((2+5))
+Undefined variable 'y' at line 6, pos 5
+(x!=5)
+(2+5)
+(2+(5*3))
 (x=(list[(2)]))
 (((x[(0)]))+((x[(1)])))
-(sin(30))
-(cos(45))
-(tan(60))
-(x=(sin(30)))
-(y=(cos(45)))
-(z=(tan(60)))
+0.49999999999999994
+0.7071067811865476
+1.7320508075688767
+(x=0.49999999999999994)
+(y=0.7071067811865476)
+(z=1.7320508075688767)
 (result=(x+(y-z)))
 (w=(list[(3)]))
-SyntaxError at line 17, pos 5
-SyntaxError at line 17, pos 5
-SyntaxError at line 17, pos 5
+(w[(0)]=0.49999999999999994)
+(w[(1)]=0.7071067811865476)
+(w[(2)]=5)
 (((w[(0)]))+(((w[(1)]))+((w[(2)]))))
-SyntaxError at line 18, pos 9
+(DE=0.49999999999999994)
+Undefined variable 'assasd' at line 25, pos 5
+SyntaxError at line 26, pos 10

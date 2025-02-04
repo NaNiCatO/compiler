@@ -1,6 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 import csv
+import math
 
 # List of token names
 tokens = (
@@ -72,8 +73,10 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 def t_error(t):
-    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos}.")
-    t.lexer.skip(len(t.value))
+    print(f"Illegal character '{t.value[0]}' at line {t.lexer.lineno}, pos {t.lexpos + 1}")
+    t.lexer.skip(1)  # Skip the invalid character
+
+
 
 # Build the lexer
 lexer = lex.lex()
@@ -83,6 +86,7 @@ symbol_table = {}
 
 def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, value=None):
     """Add or update an entry in the symbol table."""
+    start_pos = start_pos + 1  # Convert to 1-based index
     if lexeme not in symbol_table:
         symbol_table[lexeme] = {
             "lexeme": lexeme,
@@ -137,6 +141,19 @@ def generate_assembly(operation, operand1, operand2=None, result_register=None):
     return result_register
 
 # Grammar rules
+def p_expression_var_from_list(p):
+    'expression : VAR ASSIGN VAR LBRACKET INT RBRACKET'
+    list_value = symbol_table.get(p[3], {}).get("value", [])
+    if not isinstance(list_value, list):
+        p[0] = f"Semantic Error: '{p[3]}' is not a list."
+    elif p[5] < 0 or p[5] >= len(list_value):
+        p[0] = f"Semantic Error: Index out of range for list '{p[3]}' at index {p[5]}."
+    else:
+        value = list_value[p[5]]
+        add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "variable", value)
+        p[0] = f"({p[1]}={value})"
+
+
 def p_assignment(p):
     'expression : VAR ASSIGN expression'
     lexeme = p[1]
@@ -150,6 +167,17 @@ def p_assignment(p):
         assembly_code.append(f"ST @{lexeme} {p[3]}")
         p[0] = f"({lexeme}={p[3]})"
 
+
+def p_expression_comparison(p):
+    '''expression : expression GT expression
+                  | expression GTE expression
+                  | expression LT expression
+                  | expression LTE expression
+                  | expression EQ expression
+                  | expression NEQ expression'''
+    p[0] = f"({p[1]}{p[2]}{p[3]})"
+
+
 def p_expression_arithmetic(p):
     '''expression : expression ADD expression
                   | expression SUB expression
@@ -160,9 +188,19 @@ def p_expression_arithmetic(p):
     assembly_code.append(f"ST @print {result_register}\n")
     p[0] = f"({p[1]}{p[2]}{p[3]})"
 
+
+def p_expression_intdiv(p):
+    'expression : expression INTDIV expression'
+    p[0] = f"({p[1]}//{p[3]})"
+
+
 def p_expression_group(p):
     'expression : LPAREN expression RPAREN'
-    p[0] = f"({p[2]})"
+    # Avoid adding extra parentheses if already enclosed
+    if isinstance(p[2], str) and p[2].startswith('(') and p[2].endswith(')'):
+        p[0] = p[2]
+    else:
+        p[0] = f"({p[2]})"
 
 def p_expression_number(p):
     '''expression : INT
@@ -175,11 +213,12 @@ def p_expression_var(p):
     lexeme = p[1]
     if lexeme not in symbol_table:
         line_number = p.lineno(1)
-        start_pos = p.lexpos(1)
+        start_pos = p.lexpos(1) + 1  # Adjust position to start from 1
         p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
     else:
         result_register = generate_assembly(None, f"@{lexeme}")
         p[0] = lexeme
+
 
 def p_expression_list_declaration(p):
     'expression : VAR ASSIGN LIST LBRACKET INT RBRACKET'
@@ -217,20 +256,45 @@ def p_expression_list_access(p):
         assembly_code.append(f"ST $print R4 // print {p[1]}[{p[3]}]\n")
         p[0] = f"(({p[1]}[({p[3]})]))"
 
-def p_expression_function(p):
+
+def p_expression_list_assignment(p):
+    'expression : VAR LBRACKET INT RBRACKET ASSIGN expression'
+    list_value = symbol_table.get(p[1], {}).get("value", [])
+    if not isinstance(list_value, list):
+        p[0] = f"Semantic Error: '{p[1]}' is not a list."
+    elif p[3] < 0 or p[3] >= len(list_value):
+        p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
+    else:
+        try:
+            list_value[p[3]] = eval(p[6])
+        except:
+            list_value[p[3]] = p[6]
+        p[0] = f"({p[1]}[({p[3]})]={p[6]})"
+        add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", list_value)
+
+
+def p_function_call(p):
     '''expression : SIN LPAREN expression RPAREN
                   | COS LPAREN expression RPAREN
                   | TAN LPAREN expression RPAREN'''
     result_register = generate_assembly(p[1], p[3])
     assembly_code.append(f"ST @print {result_register}\n")
     p[0] = f"({p[1]}({p[3]}))"
+    if p[1] == 'sin':
+        p[0] = math.sin(math.radians(eval(p[3])))  # Convert to radians
+    elif p[1] == 'cos':
+        p[0] = math.cos(math.radians(eval(p[3])))
+    elif p[1] == 'tan':
+        p[0] = math.tan(math.radians(eval(p[3])))
+
 
 def p_error(p):
     assembly_code.append("ERROR\n")
     if p:
-        raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos}")
+        raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos + 1}")
     else:
         raise SyntaxError("SyntaxError at EOF")
+
 
 # Build the parser
 parser = yacc.yacc()
@@ -250,12 +314,14 @@ def process_lexical(input_file, output_file):
                 tokens.append(f"{tok.value}/{tok.type}")
             outfile.write(' '.join(tokens) + '\n')
 
+
 # Function to process syntactic analysis
 def process_syntax(input_file, bracket_output):
     with open(input_file, 'r') as infile, open(bracket_output, 'w') as bracket_file:
         for lineno, line in enumerate(infile, start=1):
             try:
-                result = parser.parse(line)
+                lexer.lineno = lineno  # Explicitly set the lexer's line number
+                result = parser.parse(line, lexer=lexer)
                 if result:
                     bracket_file.write(f"{result}\n")
                 else:
@@ -264,6 +330,7 @@ def process_syntax(input_file, bracket_output):
                 bracket_file.write(f"{str(e)}\n")
             except Exception as e:
                 bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
+
 
 # Function to output the symbol table
 def write_symbol_table(output_file):
