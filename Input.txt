@@ -6,6 +6,7 @@ x = 5
 x = y
 x != 5
 (2 + 5)
+2 + 5 * 3
 x = list[2]
 x[0] + x[1]
 sin(30)
@@ -16,8 +17,10 @@ y = cos(45)
 z = tan(60)
 result = x + y - z
 w = list[3]
-w[0] = sin(90)
-w[1] = cos(0)
-w[2] = tan(45)
+w[0] = sin(30)
+w[1] = cos(45)
+w[2] = 5
 w[0] + w[1] + w[2]
+DE = w[0]
+sd =assasd
 g = sigma(20)
