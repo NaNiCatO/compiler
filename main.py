@@ -108,19 +108,38 @@ def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, valu
 # Assembly code generation
 assembly_code = []
 register_counter = 0
+register_saved = {}
 
 def get_register():
     global register_counter
     register_counter += 1
     return f"R{register_counter - 1}"
 
+def get_saved_registers():
+    return register_saved
+
+def get_expression_register(expression):
+    global register_saved
+    for (register, expr) in register_saved.items():
+        if expr == expression: return register
+    return None
+
+def save_register(register, expression):
+    global register_saved
+    register_saved[register] = expression
+
 def reset_registers():
     global register_counter
+    global register_saved
     register_counter = 0
+    register_saved = {}
 
-def generate_assembly(operation, operand1, operand2=None, result_register=None):
+def generate_assembly(operation, operand1, operand2=None, result_register=None, isAddress=False):
     if result_register is None:
         result_register = get_register()
+    if isAddress:
+        assembly_code.append(f"LD {result_register} {operand1}")
+        return result_register
     
     if operand2 is None:
         assembly_code.append(f"LD {result_register} #{operand1}")
@@ -184,9 +203,14 @@ def p_expression_arithmetic(p):
                   | expression MUL expression
                   | expression DIV expression
                   | expression POW expression'''
-    result_register = generate_assembly(p[2], p[1], p[3])
+    expression = f"({p[1]}{p[2]}{p[3]})"
+    operand1 = get_expression_register(p[1])
+    operand2 = get_expression_register(p[3])
+    result_register = generate_assembly(p[2], operand1 or p[1], operand2 or p[3])
+    save_register(result_register, expression)
     assembly_code.append(f"ST @print {result_register}\n")
-    p[0] = f"({p[1]}{p[2]}{p[3]})"
+    # print ?? if EOL
+    p[0] = expression
 
 
 def p_expression_intdiv(p):
@@ -205,8 +229,10 @@ def p_expression_group(p):
 def p_expression_number(p):
     '''expression : INT
                   | REAL'''
+    expression = str(p[1])
     result_register = generate_assembly(None, p[1])
-    p[0] = str(p[1])
+    save_register(result_register, expression)
+    p[0] = expression
 
 def p_expression_var(p):
     'expression : VAR'
@@ -216,7 +242,8 @@ def p_expression_var(p):
         start_pos = p.lexpos(1) + 1  # Adjust position to start from 1
         p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
     else:
-        result_register = generate_assembly(None, f"@{lexeme}")
+        result_register = generate_assembly(None, f"@{lexeme}", isAddress=True)
+        save_register(result_register, lexeme)
         p[0] = lexeme
 
 
@@ -248,13 +275,16 @@ def p_expression_list_access(p):
     elif p[3] < 0 or p[3] >= len(list_value):
         p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
     else:
+        expression = f"(({p[1]}[({p[3]})]))"
         assembly_code.append(f"LD R0 @{p[1]}")
         assembly_code.append(f"LD R1 #{p[3]}")
         assembly_code.append(f"LD R2 #4")
         assembly_code.append(f"MUL.i R3 R1 R2")
         assembly_code.append(f"ADD.i R4 R0 R3")
         assembly_code.append(f"ST $print R4 // print {p[1]}[{p[3]}]\n")
-        p[0] = f"(({p[1]}[({p[3]})]))"
+        # Print at EOL ??
+        save_register(get_register(), expression)
+        p[0] = expression
 
 
 def p_expression_list_assignment(p):
@@ -279,6 +309,7 @@ def p_function_call(p):
                   | TAN LPAREN expression RPAREN'''
     result_register = generate_assembly(p[1], p[3])
     assembly_code.append(f"ST @print {result_register}\n")
+    # Print at EOL ??
     p[0] = f"({p[1]}({p[3]}))"
     if p[1] == 'sin':
         p[0] = math.sin(math.radians(eval(p[3])))  # Convert to radians
@@ -286,6 +317,8 @@ def p_function_call(p):
         p[0] = math.cos(math.radians(eval(p[3])))
     elif p[1] == 'tan':
         p[0] = math.tan(math.radians(eval(p[3])))
+    
+    save_register(result_register, p[0])
 
 
 def p_error(p):
@@ -330,6 +363,8 @@ def process_syntax(input_file, bracket_output):
                 bracket_file.write(f"{str(e)}\n")
             except Exception as e:
                 bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
+            finally:
+                reset_registers()
 
 
 # Function to output the symbol table
