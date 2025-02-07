@@ -116,9 +116,6 @@ def get_register():
     register_counter += 1
     return f"R{register_counter - 1}"
 
-def get_saved_registers():
-    return register_saved
-
 def get_expression_register(expression):
     global register_saved
     for (register, expr) in register_saved.items():
@@ -160,11 +157,24 @@ def generate_assembly(operation, operand1, operand2=None, result_register=None, 
         elif operation == '*':
             temp_assembly_code.append(f"MUL.i {result_register} {operand1} {operand2}")
         elif operation == '/':
+            temp_assembly_code.append(f"DIV.f {result_register} {operand1} {operand2}")
+        elif operation == '//':
             temp_assembly_code.append(f"DIV.i {result_register} {operand1} {operand2}")
         elif operation == '^':
             temp_assembly_code.append(f"POW.i {result_register} {operand1} {operand2}")
+        elif operation == '==':
+            temp_assembly_code.append(f"EQ.f {result_register} {operand1} {operand2}")
         elif operation == '!=':
             temp_assembly_code.append(f"NE.f {result_register} {operand1} {operand2}")
+        elif operation == '>':
+            temp_assembly_code.append(f"GT.f {result_register} {operand1} {operand2}")
+        elif operation == '>=':
+            temp_assembly_code.append(f"GE.f {result_register} {operand1} {operand2}")
+        elif operation == '<':
+            temp_assembly_code.append(f"LT.f {result_register} {operand1} {operand2}")
+        elif operation == '<=':
+            temp_assembly_code.append(f"LE.f {result_register} {operand1} {operand2}")
+    
     
     return result_register
 
@@ -174,11 +184,21 @@ def p_expression_var_from_list(p):
     list_value = symbol_table.get(p[3], {}).get("value", [])
     if not isinstance(list_value, list):
         p[0] = f"Semantic Error: '{p[3]}' is not a list."
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     elif p[5] < 0 or p[5] >= len(list_value):
         p[0] = f"Semantic Error: Index out of range for list '{p[3]}' at index {p[5]}."
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     else:
         value = list_value[p[5]]
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "variable", value)
+        temp_assembly_code.append(f"LD R0 {p[5]}")
+        temp_assembly_code.append(f"LD R1 @{p[3]}")
+        temp_assembly_code.append(f"LD R2 #4")
+        temp_assembly_code.append(f"MUL.i R3 R0 R2")
+        temp_assembly_code.append(f"ADD.i R4 R1 R3")
+        temp_assembly_code.append(f"ST @{p[1]} R4")
         p[0] = f"({p[1]}={value})"
 
 
@@ -190,6 +210,8 @@ def p_assignment(p):
 
     if isinstance(p[3], str) and "Undefined variable" in p[3]:
         p[0] = p[3]
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     else:
         add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
         expression_register = get_expression_register(p[3])
@@ -204,7 +226,13 @@ def p_expression_comparison(p):
                   | expression LTE expression
                   | expression EQ expression
                   | expression NEQ expression'''
-    p[0] = f"({p[1]}{p[2]}{p[3]})"
+    expression = f"({p[1]}{p[2]}{p[3]})"
+    operand1 = get_expression_register(p[1])
+    operand2 = get_expression_register(p[3])
+    result_register = generate_assembly(p[2], operand1 or p[1], operand2 or p[3])
+    save_register(result_register, expression)
+    temp_assembly_code.append(f"ST @print {result_register}")
+    p[0] = expression
 
 
 def p_expression_arithmetic(p):
@@ -225,7 +253,13 @@ def p_expression_arithmetic(p):
 
 def p_expression_intdiv(p):
     'expression : expression INTDIV expression'
-    p[0] = f"({p[1]}//{p[3]})"
+    expression = f"({p[1]}//{p[3]})"
+    operand1 = get_expression_register(p[1])
+    operand2 = get_expression_register(p[3])
+    result_register = generate_assembly(p[2], operand1 or p[1], operand2 or p[3])
+    save_register(result_register, expression)
+    temp_assembly_code.append(f"ST @print {result_register}")
+    p[0] = expression
 
 
 def p_expression_group(p):
@@ -251,6 +285,8 @@ def p_expression_var(p):
         line_number = p.lineno(1)
         start_pos = p.lexpos(1) + 1  # Adjust position to start from 1
         p[0] = f"Undefined variable '{lexeme}' at line {line_number}, pos {start_pos}"
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     else:
         result_register = generate_assembly(None, f"@{lexeme}", isAddress=True)
         save_register(result_register, lexeme)
@@ -261,20 +297,18 @@ def p_expression_list_declaration(p):
     'expression : VAR ASSIGN LIST LBRACKET INT RBRACKET'
     if p[5] <= 0:
         p[0] = "Semantic Error: List size must be positive."
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     else:
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", [0] * p[5])
-        temp_assembly_code.append(f"LD R0 #0 // load 0, list {p[1]}[{p[5]}] we should set {p[1]}[0] and {p[1]}[1] to 0")
+        temp_assembly_code.append(f"LD R0 #0 // load 0, list {p[1]}[{p[5]}]")
         temp_assembly_code.append(f"LD R1 @{p[1]} // load base address of {p[1]}")
-        temp_assembly_code.append(f"LD R2 #0 // load offset 0")
-        temp_assembly_code.append(f"LD R3 #4 // size = 4 bytes")
-        temp_assembly_code.append(f"MUL.i R4 R2 R3 // offset * size")
-        temp_assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[0] address")
-        temp_assembly_code.append(f"ST R5 R0 // {p[1]}[0] = 0")
-        temp_assembly_code.append(f"LD R2 #1")
-        temp_assembly_code.append(f"LD R3 #4")
-        temp_assembly_code.append(f"MUL.i R4 R2 R3")
-        temp_assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[1] address")
-        temp_assembly_code.append(f"ST R5 R0 // {p[1]}[1] = 0")
+        temp_assembly_code.append(f"LD R2 #4 // size = 4 bytes")
+        for i in range(p[5]):
+            temp_assembly_code.append(f"LD R3 #{i} // load offset {i}")
+            temp_assembly_code.append(f"MUL.i R4 R2 R3 // size * offset")
+            temp_assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[{i}] address")
+            temp_assembly_code.append(f"ST R5 R0 // {p[1]}[{i}] = 0")
         p[0] = f"({p[1]}=(list[({p[5]})]))"
 
 def p_expression_list_access(p):
@@ -282,18 +316,30 @@ def p_expression_list_access(p):
     list_value = symbol_table.get(p[1], {}).get("value", [])
     if not isinstance(list_value, list):
         p[0] = f"Semantic Error: '{p[1]}' is not a list."
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     elif p[3] < 0 or p[3] >= len(list_value):
         p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
+        reset_temp_assembly()
+        temp_assembly_code.append("ERROR")
     else:
         expression = f"(({p[1]}[({p[3]})]))"
-        temp_assembly_code.append(f"LD R0 @{p[1]}")
-        temp_assembly_code.append(f"LD R1 #{p[3]}")
-        temp_assembly_code.append(f"LD R2 #4")
-        temp_assembly_code.append(f"MUL.i R3 R1 R2")
-        temp_assembly_code.append(f"ADD.i R4 R0 R3")
-        temp_assembly_code.append(f"ST $print R4 // print {p[1]}[{p[3]}]")
-        # Print at EOL ??
-        save_register(get_register(), expression)
+        expression_register = get_register()
+        reg1 = get_register()
+        reg2 = get_register()
+        reg3 = get_register()
+        reg4 = get_register()
+        reg5 = get_register()
+        temp_assembly_code.append(f"LD {reg1} @{p[1]}")
+        temp_assembly_code.append(f"LD {reg2} #{p[3]}")
+        temp_assembly_code.append(f"LD {reg3} #4")
+        temp_assembly_code.append(f"MUL.i {reg4} {reg2} {reg3}")
+        temp_assembly_code.append(f"ADD.i {reg5} {reg1} {reg4}")
+        temp_assembly_code.append(f"LD {expression_register} {reg5}")
+        temp_assembly_code.append(f"ST @print {expression_register} // print {p[1]}[{p[3]}]")
+        save_register(expression_register, expression)
+        global register_counter
+        register_counter -= 5
         p[0] = expression
 
 
@@ -306,11 +352,23 @@ def p_expression_list_assignment(p):
         p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
     else:
         try:
-            list_value[p[3]] = eval(p[6])
+            list_value[p[3]] = float(p[6])
         except:
             list_value[p[3]] = p[6]
         p[0] = f"({p[1]}[({p[3]})]={p[6]})"
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", list_value)
+        expression_register = get_expression_register(p[6])
+        reg1 = get_register()
+        reg2 = get_register()
+        reg3 = get_register()
+        reg4 = get_register()
+        reg5 = get_register()
+        temp_assembly_code.append(f"LD {reg1} #{p[3]}")
+        temp_assembly_code.append(f"LD {reg2} @{p[1]}")
+        temp_assembly_code.append(f"LD {reg3} #4")
+        temp_assembly_code.append(f"MUL.i {reg4} {reg1} {reg3}")
+        temp_assembly_code.append(f"ADD.i {reg5} {reg2} {reg4}")
+        temp_assembly_code.append(f"ST {reg5} {expression_register}")
 
 
 def p_function_call(p):
@@ -319,7 +377,6 @@ def p_function_call(p):
                   | TAN LPAREN expression RPAREN'''
     result_register = generate_assembly(p[1], p[3], isFunction=True)
     temp_assembly_code.append(f"ST @print {result_register}")
-    # Print at EOL ??
     p[0] = f"({p[1]}({p[3]}))"
     if p[1] == 'sin':
         p[0] = math.sin(math.radians(eval(p[3])))  # Convert to radians
