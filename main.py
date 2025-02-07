@@ -143,8 +143,9 @@ def generate_assembly(operation, operand1, operand2=None, result_register=None, 
         temp_assembly_code.append(f"LD {result_register} {operand1}")
         return result_register
     elif isFunction:
-        arg_expression_register = get_expression_register(operand1)
-        temp_assembly_code.append(f"LD {result_register} {operation}({arg_expression_register or operand1})")
+        # arg_expression_register = get_expression_register(operand1)
+        # temp_assembly_code.append(f"LD {result_register} {operation}({arg_expression_register or operand1})")
+        temp_assembly_code.append(f"LD {result_register} {operand2}")
         return result_register
     
     if operand2 is None:
@@ -375,8 +376,6 @@ def p_function_call(p):
     '''expression : SIN LPAREN expression RPAREN
                   | COS LPAREN expression RPAREN
                   | TAN LPAREN expression RPAREN'''
-    result_register = generate_assembly(p[1], p[3], isFunction=True)
-    temp_assembly_code.append(f"ST @print {result_register}")
     p[0] = f"({p[1]}({p[3]}))"
     if p[1] == 'sin':
         p[0] = math.sin(math.radians(eval(p[3])))  # Convert to radians
@@ -384,6 +383,9 @@ def p_function_call(p):
         p[0] = math.cos(math.radians(eval(p[3])))
     elif p[1] == 'tan':
         p[0] = math.tan(math.radians(eval(p[3])))
+
+    result_register = generate_assembly(p[1], p[3], p[0], isFunction=True)
+    temp_assembly_code.append(f"ST @print {result_register}")
     
     save_register(result_register, p[0])
 
