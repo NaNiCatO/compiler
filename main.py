@@ -107,6 +107,7 @@ def add_to_symbol_table(lexeme, line_number, start_pos, length, token_type, valu
 
 # Assembly code generation
 assembly_code = []
+temp_assembly_code = []
 register_counter = 0
 register_saved = {}
 
@@ -134,28 +135,36 @@ def reset_registers():
     register_counter = 0
     register_saved = {}
 
-def generate_assembly(operation, operand1, operand2=None, result_register=None, isAddress=False):
+def reset_temp_assembly():
+    global temp_assembly_code
+    temp_assembly_code = []
+
+def generate_assembly(operation, operand1, operand2=None, result_register=None, isAddress=False, isFunction=False):
     if result_register is None:
         result_register = get_register()
     if isAddress:
-        assembly_code.append(f"LD {result_register} {operand1}")
+        temp_assembly_code.append(f"LD {result_register} {operand1}")
+        return result_register
+    elif isFunction:
+        arg_expression_register = get_expression_register(operand1)
+        temp_assembly_code.append(f"LD {result_register} {operation}({arg_expression_register or operand1})")
         return result_register
     
     if operand2 is None:
-        assembly_code.append(f"LD {result_register} #{operand1}")
+        temp_assembly_code.append(f"LD {result_register} #{operand1}")
     else:
         if operation == '+':
-            assembly_code.append(f"ADD.i {result_register} {operand1} {operand2}")
+            temp_assembly_code.append(f"ADD.i {result_register} {operand1} {operand2}")
         elif operation == '-':
-            assembly_code.append(f"SUB.i {result_register} {operand1} {operand2}")
+            temp_assembly_code.append(f"SUB.i {result_register} {operand1} {operand2}")
         elif operation == '*':
-            assembly_code.append(f"MUL.i {result_register} {operand1} {operand2}")
+            temp_assembly_code.append(f"MUL.i {result_register} {operand1} {operand2}")
         elif operation == '/':
-            assembly_code.append(f"DIV.i {result_register} {operand1} {operand2}")
+            temp_assembly_code.append(f"DIV.i {result_register} {operand1} {operand2}")
         elif operation == '^':
-            assembly_code.append(f"POW.i {result_register} {operand1} {operand2}")
+            temp_assembly_code.append(f"POW.i {result_register} {operand1} {operand2}")
         elif operation == '!=':
-            assembly_code.append(f"NE.f {result_register} {operand1} {operand2}")
+            temp_assembly_code.append(f"NE.f {result_register} {operand1} {operand2}")
     
     return result_register
 
@@ -183,7 +192,8 @@ def p_assignment(p):
         p[0] = p[3]
     else:
         add_to_symbol_table(lexeme, line_number, start_pos, len(lexeme), "variable", p[3])
-        assembly_code.append(f"ST @{lexeme} {p[3]}")
+        expression_register = get_expression_register(p[3])
+        temp_assembly_code.append(f"ST @{lexeme} {expression_register or p[3]}")
         p[0] = f"({lexeme}={p[3]})"
 
 
@@ -208,7 +218,7 @@ def p_expression_arithmetic(p):
     operand2 = get_expression_register(p[3])
     result_register = generate_assembly(p[2], operand1 or p[1], operand2 or p[3])
     save_register(result_register, expression)
-    assembly_code.append(f"ST @print {result_register}\n")
+    temp_assembly_code.append(f"ST @print {result_register}")
     # print ?? if EOL
     p[0] = expression
 
@@ -253,18 +263,18 @@ def p_expression_list_declaration(p):
         p[0] = "Semantic Error: List size must be positive."
     else:
         add_to_symbol_table(p[1], p.lineno(1), p.lexpos(1), len(p[1]), "list", [0] * p[5])
-        assembly_code.append(f"LD R0 #0 // load 0, list {p[1]}[{p[5]}] we should set {p[1]}[0] and {p[1]}[1] to 0")
-        assembly_code.append(f"LD R1 @{p[1]} // load base address of {p[1]}")
-        assembly_code.append(f"LD R2 #0 // load offset 0")
-        assembly_code.append(f"LD R3 #4 // size = 4 bytes")
-        assembly_code.append(f"MUL.i R4 R2 R3 // offset * size")
-        assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[0] address")
-        assembly_code.append(f"ST R5 R0 // {p[1]}[0] = 0")
-        assembly_code.append(f"LD R2 #1")
-        assembly_code.append(f"LD R3 #4")
-        assembly_code.append(f"MUL.i R4 R2 R3")
-        assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[1] address")
-        assembly_code.append(f"ST R5 R0 // {p[1]}[1] = 0\n")
+        temp_assembly_code.append(f"LD R0 #0 // load 0, list {p[1]}[{p[5]}] we should set {p[1]}[0] and {p[1]}[1] to 0")
+        temp_assembly_code.append(f"LD R1 @{p[1]} // load base address of {p[1]}")
+        temp_assembly_code.append(f"LD R2 #0 // load offset 0")
+        temp_assembly_code.append(f"LD R3 #4 // size = 4 bytes")
+        temp_assembly_code.append(f"MUL.i R4 R2 R3 // offset * size")
+        temp_assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[0] address")
+        temp_assembly_code.append(f"ST R5 R0 // {p[1]}[0] = 0")
+        temp_assembly_code.append(f"LD R2 #1")
+        temp_assembly_code.append(f"LD R3 #4")
+        temp_assembly_code.append(f"MUL.i R4 R2 R3")
+        temp_assembly_code.append(f"ADD.i R5 R1 R4 // {p[1]}[1] address")
+        temp_assembly_code.append(f"ST R5 R0 // {p[1]}[1] = 0")
         p[0] = f"({p[1]}=(list[({p[5]})]))"
 
 def p_expression_list_access(p):
@@ -276,12 +286,12 @@ def p_expression_list_access(p):
         p[0] = f"Semantic Error: Index out of range for list '{p[1]}' at index {p[3]}."
     else:
         expression = f"(({p[1]}[({p[3]})]))"
-        assembly_code.append(f"LD R0 @{p[1]}")
-        assembly_code.append(f"LD R1 #{p[3]}")
-        assembly_code.append(f"LD R2 #4")
-        assembly_code.append(f"MUL.i R3 R1 R2")
-        assembly_code.append(f"ADD.i R4 R0 R3")
-        assembly_code.append(f"ST $print R4 // print {p[1]}[{p[3]}]\n")
+        temp_assembly_code.append(f"LD R0 @{p[1]}")
+        temp_assembly_code.append(f"LD R1 #{p[3]}")
+        temp_assembly_code.append(f"LD R2 #4")
+        temp_assembly_code.append(f"MUL.i R3 R1 R2")
+        temp_assembly_code.append(f"ADD.i R4 R0 R3")
+        temp_assembly_code.append(f"ST $print R4 // print {p[1]}[{p[3]}]")
         # Print at EOL ??
         save_register(get_register(), expression)
         p[0] = expression
@@ -307,8 +317,8 @@ def p_function_call(p):
     '''expression : SIN LPAREN expression RPAREN
                   | COS LPAREN expression RPAREN
                   | TAN LPAREN expression RPAREN'''
-    result_register = generate_assembly(p[1], p[3])
-    assembly_code.append(f"ST @print {result_register}\n")
+    result_register = generate_assembly(p[1], p[3], isFunction=True)
+    temp_assembly_code.append(f"ST @print {result_register}")
     # Print at EOL ??
     p[0] = f"({p[1]}({p[3]}))"
     if p[1] == 'sin':
@@ -322,7 +332,8 @@ def p_function_call(p):
 
 
 def p_error(p):
-    assembly_code.append("ERROR\n")
+    reset_temp_assembly()
+    temp_assembly_code.append("ERROR")
     if p:
         raise SyntaxError(f"SyntaxError at line {p.lineno}, pos {p.lexpos + 1}")
     else:
@@ -364,6 +375,9 @@ def process_syntax(input_file, bracket_output):
             except Exception as e:
                 bracket_file.write(f"UnexpectedError at line {lineno}: {e}\n")
             finally:
+                assembly_code.extend(temp_assembly_code)
+                assembly_code.append("")
+                reset_temp_assembly()
                 reset_registers()
 
 
