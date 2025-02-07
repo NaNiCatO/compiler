@@ -145,7 +145,7 @@ def generate_assembly(operation, operand1, operand2=None, result_register=None, 
     elif isFunction:
         # arg_expression_register = get_expression_register(operand1)
         # temp_assembly_code.append(f"LD {result_register} {operation}({arg_expression_register or operand1})")
-        temp_assembly_code.append(f"LD {result_register} {operand2}")
+        temp_assembly_code.append(f"LD {result_register} #{operand2}")
         return result_register
     
     if operand2 is None:
